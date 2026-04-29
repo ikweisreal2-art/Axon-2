@@ -678,69 +678,74 @@
   @media (max-width: 768px) {
     /* Kill custom cursor on touch */
     body { cursor: auto; }
-    #cursor, #cursor-ring { display: none; }
+    #cursor, #cursor-ring { display: none !important; }
 
     /* NAV */
-    nav { padding: 16px 20px; }
-    .nav-links { display: none; }
+    nav { padding: 14px 20px; }
+    nav .nav-links { display: none !important; }
 
-    /* HERO — fix the dead space */
+    /* HERO — remove min-height entirely, use padding to sit content
+       right below the nav (~60px tall on mobile) */
     #hero {
-      min-height: 100svh;
-      padding: 80px 24px 60px;
-      justify-content: center;
+      min-height: unset;
+      height: auto;
+      padding: 100px 24px 64px;
+      justify-content: flex-start;
     }
-    .hero-eyebrow { font-size: 9px; letter-spacing: 3px; margin-bottom: 20px; }
-    .hero-title { font-size: clamp(72px, 22vw, 120px); letter-spacing: 4px; }
-    .hero-sub { font-size: clamp(18px, 6vw, 28px); letter-spacing: 3px; margin-bottom: 20px; }
-    .hero-desc { font-size: 14px; margin-bottom: 36px; }
-    .hero-actions { flex-direction: column; width: 100%; max-width: 320px; }
-    .btn-primary, .btn-ghost { width: 100%; text-align: center; padding: 16px 24px; }
+    .hero-eyebrow { font-size: 9px; letter-spacing: 3px; margin-bottom: 16px; }
+    .hero-title { font-size: clamp(64px, 20vw, 110px); letter-spacing: 4px; }
+    .hero-sub { font-size: clamp(16px, 5.5vw, 26px); letter-spacing: 3px; margin-bottom: 16px; }
+    .hero-desc { font-size: 14px; margin-bottom: 32px; max-width: 100%; }
+    .hero-actions { flex-direction: column; width: 100%; max-width: 100%; gap: 12px; }
+    .btn-primary, .btn-ghost { width: 100%; text-align: center; padding: 15px 24px; }
 
-    /* STATS */
-    .stats-inner { grid-template-columns: 1fr; }
-    .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 24px 20px; }
-    .stat-item:last-child { border-bottom: none; }
-    .stat-num { font-size: 40px; }
+    /* STATS — keep 3-col, just tighten it */
+    .stats-inner { grid-template-columns: repeat(3, 1fr); }
+    .stat-item { padding: 20px 10px; }
+    .stat-num { font-size: 28px; }
+    .stat-label { font-size: 8px; letter-spacing: 1px; }
 
     /* AGENTS */
-    #agents { padding: 80px 20px 0; }
-    #agents > div { padding: 0; }
-    .section-title { font-size: clamp(32px, 10vw, 52px); margin-bottom: 36px; }
-    .agent-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .agent-tab { padding: 12px 18px; font-size: 10px; white-space: nowrap; }
-    .agent-panel.active { grid-template-columns: 1fr; gap: 28px; }
+    #agents { padding: 72px 20px 0; }
+    #agents > div { padding: 72px 0 0; }
+    .section-title { font-size: clamp(30px, 9vw, 48px); margin-bottom: 32px; }
+    .agent-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding-bottom: 1px; }
+    .agent-tab { padding: 11px 16px; font-size: 9px; white-space: nowrap; }
+    .agent-panel.active { grid-template-columns: 1fr; gap: 24px; }
     .agent-visual { padding: 20px; }
     .mock-msg { font-size: 11px; }
 
     /* HOW IT WORKS */
-    #how { padding: 80px 20px; }
-    .steps-grid { grid-template-columns: 1fr 1fr; }
+    #how { padding: 72px 20px; }
+    .how-inner { max-width: 100%; }
+    .steps-grid { grid-template-columns: 1fr 1fr; gap: 0; }
     .step { border-right: none; border-bottom: 1px solid var(--border); padding: 24px 16px; }
     .step:nth-child(odd) { border-right: 1px solid var(--border); }
     .step:nth-last-child(-n+2) { border-bottom: none; }
-    .step-num { font-size: 52px; }
+    .step-num { font-size: 48px; }
+    .step-desc { font-size: 13px; }
 
     /* PRICING */
-    #pricing { padding: 80px 20px; }
-    .pricing-grid { grid-template-columns: 1fr; }
-    .price-card { padding: 28px 24px; }
+    #pricing { padding: 72px 20px; max-width: 100%; }
+    .pricing-grid { grid-template-columns: 1fr; background: none; border: none; gap: 12px; }
+    .price-card { border: 1px solid var(--border); padding: 28px 22px; }
+    .price-card.featured { border-color: rgba(201,168,76,0.4); }
 
     /* WAITLIST */
-    #waitlist { padding: 80px 20px; }
-    .waitlist-form { flex-direction: column; }
+    #waitlist { padding: 72px 20px; }
+    .waitlist-inner p { margin-bottom: 32px; }
+    .waitlist-form { flex-direction: column; max-width: 100%; }
     .waitlist-form input { border-right: 1px solid var(--border-lit); border-bottom: none; }
-    .waitlist-form button { width: 100%; }
+    .waitlist-form button { width: 100%; padding: 16px; }
 
     /* FOOTER */
-    footer { flex-direction: column; gap: 12px; padding: 24px 20px; text-align: center; }
+    footer { flex-direction: column; gap: 10px; padding: 24px 20px; text-align: center; }
   }
 
   @media (max-width: 480px) {
     .steps-grid { grid-template-columns: 1fr; }
-    .step { border-right: none !important; }
-    .step:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
-    .step:last-child { border-bottom: none; }
+    .step { border-right: none !important; border-bottom: 1px solid var(--border) !important; }
+    .step:last-child { border-bottom: none !important; }
   }
 </style>
 </head>
