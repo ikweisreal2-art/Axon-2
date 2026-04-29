@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXON — Operator Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --black: #080808; --void: #0a0a0a; --surface: #111111; --surface2: #161616; --surface3: #1a1a1a;
+    --border: rgba(255,255,255,0.07); --border-lit: rgba(255,255,255,0.13);
+    --gold: #c9a84c; --gold-dim: rgba(201,168,76,0.12); --gold-glow: rgba(201,168,76,0.3);
+    --white: #f0ede8; --muted: rgba(240,237,232,0.45); --dim: rgba(240,237,232,0.12);
+    --green: #4ade80; --red: #f87171; --blue: #60a5fa;
+    --sidebar-w: 220px;
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; display: flex; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: var(--void);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    height: 100vh; position: fixed; left: 0; top: 0; z-index: 50;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 6px;
+    color: var(--white);
+  }
+  .sidebar-logo span { color: var(--gold); }
+  .sidebar-label {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--dim); padding: 20px 20px 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 20px; cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+  .nav-icon { font-size: 14px; width: 16px; text-align: center; }
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; color: var(--dim);
+  }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 11px; color: var(--gold);
+  }
+
+  /* MAIN */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--border-lit); }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 40;
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .topbar-right { display: flex; gap: 12px; align-items: center; }
+  .btn-add {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    background: var(--gold); color: var(--black);
+    border: none; padding: 8px 18px; cursor: pointer;
+    font-weight: 500; transition: background 0.2s;
+  }
+  .btn-add:hover { background: #e0ba5a; }
+  .status-pill {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; padding: 5px 10px;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(74,222,128,0.25);
+    color: var(--green);
+  }
+  .pulse { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* VIEWS */
+  .view { display: none; padding: 28px; flex: 1; }
+  .view.active { display: block; }
+
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--surface); padding: 24px 20px;
+    position: relative; transition: background 0.2s;
+  }
+  .kpi-card:hover { background: var(--surface2); }
+  .kpi-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background: linear-gradient(90deg, var(--gold), transparent); opacity: 0; transition: opacity 0.2s; }
+  .kpi-card:hover::before { opacity: 1; }
+  .kpi-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .kpi-value { font-family:'Bebas Neue',sans-serif; font-size:40px; letter-spacing:2px; line-height:1; color:var(--white); margin-bottom:4px; }
+  .kpi-delta { font-family:'DM Mono',monospace; font-size:10px; }
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.neutral { color: var(--muted); }
+
+  /* CHARTS */
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border); padding: 20px 24px;
+    position: relative;
+  }
+  .chart-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, var(--gold), transparent); opacity:0.5; }
+  .chart-title { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+  .bar-chart { display:flex; align-items:flex-end; gap:6px; height:100px; }
+  .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .bar {
+    width:100%; background:var(--gold-dim); border-top: 2px solid var(--gold);
+    transition: height 0.5s ease, background 0.2s;
+    cursor:default;
+  }
+  .bar:hover { background: rgba(201,168,76,0.25); }
+  .bar-label { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--dim); }
+  .donut-wrap { display:flex; align-items:center; justify-content:center; flex-direction:column; height:100px; gap:8px; }
+  .donut-ring { position:relative; width:80px; height:80px; }
+  .donut-ring svg { transform: rotate(-90deg); }
+  .donut-center { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .donut-val { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:2px; color:var(--gold); }
+  .donut-sub { font-family:'DM Mono',monospace; font-size:8px; color:var(--dim); }
+  .plan-legend { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .legend-item { display:flex; align-items:center; gap:8px; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }
+  .legend-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+  /* CLIENT TABLE */
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .section-h { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); padding:10px 14px; text-align:left; }
+  td { padding:12px 14px; font-size:13px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.15s; cursor:pointer; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .client-name { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:1px; color:var(--white); }
+  .plan-badge {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase;
+    padding:3px 8px; border: 1px solid var(--border-lit); color:var(--muted);
+  }
+  .plan-badge.growth { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+  .plan-badge.enterprise { border-color: rgba(96,165,250,0.4); color: var(--blue); }
+  .sat-bar { height:4px; background:var(--border); width:80px; position:relative; }
+  .sat-fill { height:100%; background:var(--gold); }
+  .revenue-cell { font-family:'DM Mono',monospace; font-size:12px; color:var(--green); }
+  .agents-cell { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+
+  /* $1M TRACKER */
+  .tracker-card { background:var(--surface); border:1px solid var(--border); padding:20px 24px; margin-top:16px; position:relative; }
+  .tracker-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, var(--gold),transparent); opacity:0.5; }
+  .tracker-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .tracker-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .tracker-val { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:2px; color:var(--gold); }
+  .progress-bar { height:6px; background:var(--border); position:relative; overflow:hidden; }
+  .progress-fill { height:100%; background: linear-gradient(90deg, var(--gold), #e0ba5a); transition: width 1s ease; }
+  .progress-labels { display:flex; justify-content:space-between; margin-top:6px; font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); }
+
+  /* CLIENT DETAIL MODAL */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal-box {
+    background:var(--surface); border:1px solid var(--border-lit); width:680px; max-height:85vh; overflow-y:auto;
+    position:relative;
+  }
+  .modal-box::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+  .modal-header { padding:24px 28px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-name { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:3px; }
+  .modal-close { background:none; border:1px solid var(--border-lit); color:var(--muted); padding:6px 12px; cursor:pointer; font-family:'DM Mono',monospace; font-size:10px; transition:all 0.2s; }
+  .modal-close:hover { border-color:var(--gold); color:var(--gold); }
+  .modal-tabs { display:flex; border-bottom:1px solid var(--border); }
+  .modal-tab { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:12px 20px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; }
+  .modal-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .modal-tab-content { padding:24px 28px; }
+  .modal-tab-panel { display:none; }
+  .modal-tab-panel.active { display:block; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+  .detail-stat { background:var(--surface2); padding:16px; }
+  .detail-stat-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  .detail-stat-val { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:var(--gold); }
+  .chat-log { display:flex; flex-direction:column; gap:8px; }
+  .log-item { padding:12px 14px; background:var(--surface2); border-left:2px solid var(--border-lit); }
+  .log-meta { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--dim); margin-bottom:4px; }
+  .log-text { font-size:13px; color:var(--muted); line-height:1.5; }
+
+  /* NEW CLIENT MODAL */
+  .nc-form { padding:24px 28px; }
+  .nc-row { margin-bottom:16px; }
+  .nc-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
+  .nc-input, .nc-select {
+    width:100%; background:var(--void); border:1px solid var(--border-lit);
+    padding:11px 14px; font-family:'DM Mono',monospace; font-size:12px; color:var(--white); outline:none;
+    transition:border-color 0.2s;
+  }
+  .nc-input::placeholder { color:var(--dim); }
+  .nc-input:focus, .nc-select:focus { border-color:var(--gold); }
+  .nc-select { appearance:none; cursor:pointer; }
+  .nc-select option { background:var(--surface); }
+  .nc-footer { padding:16px 28px 24px; display:flex; gap:10px; justify-content:flex-end; border-top:1px solid var(--border); }
+  .btn-cancel { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:transparent; border:1px solid var(--border-lit); color:var(--muted); padding:10px 20px; cursor:pointer; transition:all 0.2s; }
+  .btn-cancel:hover { border-color:var(--border-lit); color:var(--white); }
+  .btn-confirm { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:var(--gold); color:var(--black); border:none; padding:10px 20px; cursor:pointer; font-weight:500; transition:background 0.2s; }
+  .btn-confirm:hover { background:#e0ba5a; }
+
+  /* REVENUE VIEW */
+  .rev-big { font-family:'Bebas Neue',sans-serif; font-size:72px; letter-spacing:4px; color:var(--gold); line-height:1; }
+  .rev-sub { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--muted); margin-top:4px; }
+  .rev-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); margin:24px 0; }
+  .rev-cell { background:var(--surface); padding:20px 24px; }
+  .rev-cell-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
+  .rev-cell-val { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:2px; }
+  .client-rev-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .client-rev-row:last-child { border-bottom:none; }
+  .client-rev-name { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--white); width:140px; flex-shrink:0; }
+  .rev-bar-bg { flex:1; height:4px; background:var(--border); }
+  .rev-bar-fill { height:100%; background:var(--gold); }
+  .client-rev-amount { font-family:'DM Mono',monospace; font-size:11px; color:var(--green); width:60px; text-align:right; flex-shrink:0; }
+
+  /* AGENTS VIEW */
+  .agents-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .agent-card { background:var(--surface); border:1px solid var(--border); padding:28px 24px; position:relative; }
+  .agent-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+  .agent-card-icon { font-size:28px; margin-bottom:16px; }
+  .agent-card-name { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:3px; margin-bottom:8px; }
+  .agent-card-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+  .agent-card-stat { display:flex; align-items:baseline; gap:8px; }
+  .agent-card-num { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:2px; color:var(--gold); }
+  .agent-card-unit { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--muted); }
+  .agent-card-deploy { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-top:2px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">AX<span>O</span>N</div>
+  <div class="sidebar-label">Main</div>
+  <div class="nav-item active" onclick="showView('dashboard',this)">
+    <span class="nav-icon">◈</span> Dashboard
+  </div>
+  <div class="nav-item" onclick="showView('clients',this)">
+    <span class="nav-icon">◉</span> Clients
+  </div>
+  <div class="nav-item" onclick="showView('revenue',this)">
+    <span class="nav-icon">◎</span> Revenue
+  </div>
+  <div class="nav-item" onclick="showView('agents',this)">
+    <span class="nav-icon">◌</span> Agents
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="user-avatar">OP</div>
+      <div>
+        <div style="color:var(--muted);font-size:11px;">Operator</div>
+        <div style="color:var(--dim);font-size:9px;margin-top:1px;">axon.dashboard</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="view-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="status-pill"><div class="pulse"></div>All Systems Live</div>
+      <button class="btn-add" onclick="openNewClient()">+ New Client</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div class="view active" id="view-dashboard">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Monthly Recurring Revenue</div>
+        <div class="kpi-value" id="kpi-mrr">$0</div>
+        <div class="kpi-delta up" id="kpi-mrr-delta">↑ +0% from last month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Clients</div>
+        <div class="kpi-value" id="kpi-clients">0</div>
+        <div class="kpi-delta neutral">of 70 to $1M ARR</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Conversations This Month</div>
+        <div class="kpi-value">12.4K</div>
+        <div class="kpi-delta up">↑ +18% from last month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg. Satisfaction Score</div>
+        <div class="kpi-value" id="kpi-sat">—</div>
+        <div class="kpi-delta up">↑ +3pts from last month</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">MRR Growth — Last 6 Months</div>
+        <div class="bar-chart" id="mrr-chart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Revenue by Plan</div>
+        <div class="donut-wrap">
+          <div class="donut-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#c9a84c" stroke-width="10" stroke-dasharray="120 68" id="donut-growth"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#60a5fa" stroke-width="10" stroke-dasharray="48 140" stroke-dashoffset="-120" id="donut-enterprise"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-val" id="donut-pct">—</div>
+              <div class="donut-sub">growth</div>
+            </div>
+          </div>
+          <div class="plan-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#c9a84c"></div>Growth</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>Enterprise</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.15)"></div>Starter</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-h">Client Overview</div>
+    </div>
+    <table id="dashboard-table">
+      <thead><tr>
+        <th>Client</th><th>Plan</th><th>MRR</th><th>Satisfaction</th><th>Agents</th><th>Status</th>
+      </tr></thead>
+      <tbody id="dashboard-tbody"></tbody>
+    </table>
+
+    <div class="tracker-card">
+      <div class="tracker-row">
+        <div class="tracker-label">Path to $1M ARR</div>
+        <div class="tracker-val" id="tracker-mrr">$0 / $83,333 / mo</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="tracker-bar" style="width:0%"></div></div>
+      <div class="progress-labels">
+        <span>$0</span>
+        <span id="tracker-need">Need <span id="tracker-clients-needed">70</span> more clients</span>
+        <span>$83,333</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTS VIEW -->
+  <div class="view" id="view-clients">
+    <table>
+      <thead><tr>
+        <th>Client</th><th>Plan</th><th>MRR</th><th>Conversations</th><th>Satisfaction</th><th>Since</th>
+      </tr></thead>
+      <tbody id="clients-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- REVENUE VIEW -->
+  <div class="view" id="view-revenue">
+    <div class="rev-big" id="rev-mrr">$0</div>
+    <div class="rev-sub">Monthly Recurring Revenue</div>
+    <div class="rev-grid">
+      <div class="rev-cell">
+        <div class="rev-cell-label">Annual Run Rate</div>
+        <div class="rev-cell-val" id="rev-arr">$0</div>
+      </div>
+      <div class="rev-cell">
+        <div class="rev-cell-label">Gap to $1M ARR</div>
+        <div class="rev-cell-val" style="color:var(--muted)" id="rev-gap">$1,000,000</div>
+      </div>
+      <div class="rev-cell">
+        <div class="rev-cell-label">Avg Revenue / Client</div>
+        <div class="rev-cell-val" id="rev-avg">$0</div>
+      </div>
+      <div class="rev-cell">
+        <div class="rev-cell-label">Clients to $1M ARR</div>
+        <div class="rev-cell-val" id="rev-clients-needed">70</div>
+      </div>
+    </div>
+    <div class="section-h" style="margin-bottom:12px;">Revenue Per Client</div>
+    <div id="rev-breakdown"></div>
+  </div>
+
+  <!-- AGENTS VIEW -->
+  <div class="view" id="view-agents">
+    <div class="agents-grid">
+      <div class="agent-card">
+        <div class="agent-card-icon">🤖</div>
+        <div class="agent-card-name">Support Agent</div>
+        <div class="agent-card-desc">24/7 customer support trained on client FAQs. Handles tickets, escalations, and multi-channel inquiries.</div>
+        <div class="agent-card-stat">
+          <div class="agent-card-num" id="support-deploys">0</div>
+          <div>
+            <div class="agent-card-unit">Active</div>
+            <div class="agent-card-deploy">Deployments</div>
+          </div>
+        </div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-card-icon">📤</div>
+        <div class="agent-card-name">Sales Agent</div>
+        <div class="agent-card-desc">Automated outreach, lead scoring, and follow-up sequences. Finds and warms prospects autonomously.</div>
+        <div class="agent-card-stat">
+          <div class="agent-card-num" id="sales-deploys">0</div>
+          <div>
+            <div class="agent-card-unit">Active</div>
+            <div class="agent-card-deploy">Deployments</div>
+          </div>
+        </div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-card-icon">⚙️</div>
+        <div class="agent-card-name">Ops Agent</div>
+        <div class="agent-card-desc">Internal workflow automation, reporting, scheduling, and task routing. The silent operator.</div>
+        <div class="agent-card-stat">
+          <div class="agent-card-num" id="ops-deploys">0</div>
+          <div>
+            <div class="agent-card-unit">Active</div>
+            <div class="agent-card-deploy">Deployments</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- CLIENT DETAIL MODAL -->
+<div class="modal-overlay" id="client-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-name" id="modal-client-name">Client</div>
+      <button class="modal-close" onclick="closeModal('client-modal')">✕ Close</button>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="showModalTab('overview',this)">Overview</div>
+      <div class="modal-tab" onclick="showModalTab('chatlogs',this)">Chat Logs</div>
+      <div class="modal-tab" onclick="showModalTab('settings',this)">Settings</div>
+    </div>
+    <div class="modal-tab-content">
+      <div class="modal-tab-panel active" id="mtab-overview">
+        <div class="detail-grid" id="modal-stats"></div>
+        <div id="modal-agents-row"></div>
+      </div>
+      <div class="modal-tab-panel" id="mtab-chatlogs">
+        <div class="chat-log" id="modal-chatlogs"></div>
+      </div>
+      <div class="modal-tab-panel" id="mtab-settings">
+        <div style="color:var(--muted);font-size:13px;line-height:1.7;">Agent configuration and webhook settings would appear here. Deploy new agents, update FAQs, or change tone preferences for this client.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CLIENT MODAL -->
+<div class="modal-overlay" id="nc-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-name">New Client</div>
+      <button class="modal-close" onclick="closeModal('nc-modal')">✕ Close</button>
+    </div>
+    <div class="nc-form">
+      <div class="nc-row"><label class="nc-label">Business Name</label><input class="nc-input" id="nc-name" placeholder="Meridian Co." type="text"></div>
+      <div class="nc-row"><label class="nc-label">Industry</label><input class="nc-input" id="nc-industry" placeholder="Logistics" type="text"></div>
+      <div class="nc-row">
+        <label class="nc-label">Plan</label>
+        <select class="nc-select" id="nc-plan">
+          <option value="Starter">Starter — $499/mo</option>
+          <option value="Growth">Growth — $999/mo</option>
+          <option value="Enterprise">Enterprise — Custom</option>
+        </select>
+      </div>
+      <div class="nc-row">
+        <label class="nc-label">Agents</label>
+        <select class="nc-select" id="nc-agents">
+          <option value="Support">Support only</option>
+          <option value="Support, Sales">Support + Sales</option>
+          <option value="Support, Sales, Ops">All 3 Agents</option>
+        </select>
+      </div>
+    </div>
+    <div class="nc-footer">
+      <button class="btn-cancel" onclick="closeModal('nc-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="addClient()">Add Client →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Data
+  let clients = [
+    { id:1, name:'Vantage Retail', industry:'E-Commerce', plan:'Growth', mrr:999, conversations:3240, sat:94, agents:'Support, Sales', since:'Jan 2025', logs:['User asked about order #4821 — resolved in 1 turn','Return request processed automatically','Escalated complex complaint to human — resolved'] },
+    { id:2, name:'Crest Properties', industry:'Real Estate', plan:'Growth', mrr:999, conversations:1870, sat:91, agents:'Support, Sales', since:'Feb 2025', logs:['Viewing booked for 3 Maple Lane','FAQ about mortgage rates — answered','Lead qualified and passed to sales pipeline'] },
+    { id:3, name:'Apex Clinic', industry:'Healthcare', plan:'Starter', mrr:499, conversations:980, sat:88, agents:'Support', since:'Feb 2025', logs:['Appointment booked for Dr. Chen','Insurance query resolved','Out-of-hours inquiry handled automatically'] },
+    { id:4, name:'Nobu Group', industry:'Hospitality', plan:'Enterprise', mrr:2400, conversations:5600, sat:97, agents:'Support, Sales, Ops', since:'Mar 2025', logs:['1,200 reservation confirmations sent this month','Weekly ops digest delivered to 8 stakeholders','Sales agent booked 3 corporate event inquiries'] },
+  ];
+
+  function calcMRR() { return clients.reduce((s,c) => s + c.mrr, 0); }
+  function calcAvgSat() {
+    if (!clients.length) return '—';
+    return Math.round(clients.reduce((s,c) => s + c.sat, 0) / clients.length) + '%';
+  }
+
+  function updateAll() {
+    const mrr = calcMRR();
+    // KPIs
+    document.getElementById('kpi-mrr').textContent = '$' + mrr.toLocaleString();
+    document.getElementById('kpi-clients').textContent = clients.length;
+    document.getElementById('kpi-sat').textContent = calcAvgSat();
+    const pct = Math.min(100, Math.round(mrr / 83333 * 100));
+    document.getElementById('kpi-mrr-delta').textContent = `↑ ${pct}% of $1M ARR target`;
+    // tracker
+    document.getElementById('tracker-mrr').textContent = '$' + mrr.toLocaleString() + ' / $83,333 / mo';
+    document.getElementById('tracker-bar').style.width = pct + '%';
+    const need = Math.max(0, Math.ceil((83333 - mrr) / 1200));
+    document.getElementById('tracker-clients-needed').textContent = need;
+    // donut
+    document.getElementById('donut-pct').textContent = Math.round(clients.filter(c=>c.plan==='Growth').length / Math.max(1,clients.length) * 100) + '%';
+    // charts
+    renderMRRChart(mrr);
+    renderDashboardTable();
+    renderClientsTable();
+    renderRevenueView(mrr);
+    renderAgentsView();
+  }
+
+  function renderMRRChart(currentMRR) {
+    const base = Math.max(1, currentMRR);
+    const history = [Math.round(base*0.25), Math.round(base*0.42), Math.round(base*0.58), Math.round(base*0.72), Math.round(base*0.88), base];
+    const months = ['Nov','Dec','Jan','Feb','Mar','Apr'];
+    const max = Math.max(...history);
+    const chart = document.getElementById('mrr-chart');
+    chart.innerHTML = history.map((v,i) => `
+      <div class="bar-col">
+        <div class="bar" style="height:${Math.round(v/max*90)}px" title="$${v.toLocaleString()}"></div>
+        <div class="bar-label">${months[i]}</div>
+      </div>`).join('');
+  }
+
+  function planBadgeClass(p) { return p === 'Growth' ? 'growth' : p === 'Enterprise' ? 'enterprise' : ''; }
+
+  function renderDashboardTable() {
+    document.getElementById('dashboard-tbody').innerHTML = clients.map(c => `
+      <tr onclick="openClientModal(${c.id})">
+        <td><div class="client-name">${c.name}</div><div style="font-size:11px;color:var(--dim);margin-top:2px;font-family:'DM Mono',monospace;">${c.industry}</div></td>
+        <td><span class="plan-badge ${planBadgeClass(c.plan)}">${c.plan}</span></td>
+        <td class="revenue-cell">$${c.mrr.toLocaleString()}</td>
+        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat}%"></div></div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">${c.sat}%</div></td>
+        <td class="agents-cell">${c.agents}</td>
+        <td><div class="status-pill" style="border:none;padding:0;"><div class="pulse"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-left:6px;">Live</span></div></td>
+      </tr>`).join('');
+  }
+
+  function renderClientsTable() {
+    document.getElementById('clients-tbody').innerHTML = clients.map(c => `
+      <tr onclick="openClientModal(${c.id})">
+        <td><div class="client-name">${c.name}</div></td>
+        <td><span class="plan-badge ${planBadgeClass(c.plan)}">${c.plan}</span></td>
+        <td class="revenue-cell">$${c.mrr.toLocaleString()}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${c.conversations.toLocaleString()}</td>
+        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat}%"></div></div></td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);">${c.since}</td>
+      </tr>`).join('');
+  }
+
+  function renderRevenueView(mrr) {
+    document.getElementById('rev-mrr').textContent = '$' + mrr.toLocaleString();
+    const arr = mrr * 12;
+    document.getElementById('rev-arr').textContent = '$' + arr.toLocaleString();
+    document.getElementById('rev-gap').textContent = '$' + Math.max(0, 1000000 - arr).toLocaleString();
+    document.getElementById('rev-avg').textContent = clients.length ? '$' + Math.round(mrr / clients.length).toLocaleString() : '$0';
+    const need = Math.max(0, Math.ceil((83333 - mrr) / 1200));
+    document.getElementById('rev-clients-needed').textContent = need;
+    const maxMRR = Math.max(...clients.map(c=>c.mrr), 1);
+    document.getElementById('rev-breakdown').innerHTML = clients.map(c => `
+      <div class="client-rev-row">
+        <div class="client-rev-name">${c.name}</div>
+        <div class="rev-bar-bg"><div class="rev-bar-fill" style="width:${Math.round(c.mrr/maxMRR*100)}%"></div></div>
+        <div class="client-rev-amount">$${c.mrr.toLocaleString()}</div>
+      </div>`).join('');
+  }
+
+  function renderAgentsView() {
+    const support = clients.filter(c => c.agents.includes('Support')).length;
+    const sales = clients.filter(c => c.agents.includes('Sales')).length;
+    const ops = clients.filter(c => c.agents.includes('Ops')).length;
+    document.getElementById('support-deploys').textContent = support;
+    document.getElementById('sales-deploys').textContent = sales;
+    document.getElementById('ops-deploys').textContent = ops;
+  }
+
+  // VIEWS
+  const viewTitles = { dashboard:'Dashboard', clients:'Clients', revenue:'Revenue', agents:'Agents' };
+  function showView(id, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    el.classList.add('active');
+    document.getElementById('view-title').textContent = viewTitles[id];
+  }
+
+  // MODALS
+  function openClientModal(id) {
+    const c = clients.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('modal-client-name').textContent = c.name;
+    document.getElementById('modal-stats').innerHTML = `
+      <div class="detail-stat"><div class="detail-stat-label">MRR</div><div class="detail-stat-val">$${c.mrr.toLocaleString()}</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Satisfaction</div><div class="detail-stat-val">${c.sat}%</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Conversations</div><div class="detail-stat-val">${c.conversations.toLocaleString()}</div></div>`;
+    document.getElementById('modal-agents-row').innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Active Agents</div><div style="font-size:13px;color:var(--white);">${c.agents}</div>`;
+    document.getElementById('modal-chatlogs').innerHTML = c.logs.map(l => `
+      <div class="log-item"><div class="log-meta">Recent interaction</div><div class="log-text">${l}</div></div>`).join('');
+    document.getElementById('client-modal').classList.add('open');
+  }
+
+  function openNewClient() { document.getElementById('nc-modal').classList.add('open'); }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('mtab-overview').classList.add('active');
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.modal-tab')[0].classList.add('active');
+  }
+
+  function showModalTab(id, el) {
+    document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('mtab-' + id).classList.add('active');
+    el.classList.add('active');
+  }
+
+  function addClient() {
+    const name = document.getElementById('nc-name').value.trim() || 'New Client';
+    const industry = document.getElementById('nc-industry').value.trim() || 'Business';
+    const plan = document.getElementById('nc-plan').value;
+    const agents = document.getElementById('nc-agents').value;
+    const mrrMap = { Starter: 499, Growth: 999, Enterprise: 2400 };
+    clients.push({
+      id: Date.now(), name, industry, plan,
+      mrr: mrrMap[plan], conversations: 0, sat: 90,
+      agents, since: 'Apr 2025',
+      logs: ['Client just onboarded — agent configuring']
+    });
+    closeModal('nc-modal');
+    document.getElementById('nc-name').value = '';
+    document.getElementById('nc-industry').value = '';
+    updateAll();
+  }
+
+  // Init
+  updateAll();
+</script>
+</body>
+</html>

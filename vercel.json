@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/", "dest": "/axon-landing.html" },
+    { "src": "/demo", "dest": "/axon-support-agent.html" },
+    { "src": "/dashboard", "dest": "/axon-dashboard.html" },
+    { "src": "/sales", "dest": "/axon-sales-agent.html" }
+  ]
+}
