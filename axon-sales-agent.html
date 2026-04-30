@@ -508,7 +508,7 @@
     document.getElementById('cp-output-actions').style.display = 'none';
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -587,7 +587,7 @@ Notes: ${l.notes}
 Output only 3 bullets starting with •. No intro, no summary. Each bullet under 20 words. Be sharp.`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

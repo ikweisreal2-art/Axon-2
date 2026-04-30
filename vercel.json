@@ -4,6 +4,11 @@
     { "src": "/", "dest": "/axon-landing.html" },
     { "src": "/demo", "dest": "/axon-support-agent.html" },
     { "src": "/dashboard", "dest": "/axon-dashboard.html" },
-    { "src": "/sales", "dest": "/axon-sales-agent.html" }
+    { "src": "/sales", "dest": "/axon-sales-agent.html" },
+    { "src": "/onboard", "dest": "/axon-onboard.html" },
+    { "src": "/widget", "dest": "/axon-widget-preview.html" },
+    { "src": "/pricing", "dest": "/axon-pricing.html" },
+    { "src": "/widget.js", "dest": "/widget.js" },
+    { "src": "/api/chat", "dest": "/api/chat.js" }
   ]
 }
