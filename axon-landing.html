@@ -709,8 +709,8 @@
     .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
 
     /* AGENTS */
-    #agents { padding: 0 20px 0; }
-    #agents > div { padding: 60px 0 40px; }
+    #agents { padding: 0 20px; }
+    #agents .agents-inner { padding: 48px 0 40px !important; }
     .section-title { font-size: clamp(30px, 9vw, 48px); margin-bottom: 32px; }
     .agent-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding-bottom: 1px; }
     .agent-tab { padding: 11px 16px; font-size: 9px; white-space: nowrap; }
@@ -802,7 +802,7 @@
 
 <!-- AGENTS -->
 <section id="agents">
-  <div style="max-width:1100px;margin:0 auto;padding:120px 0;">
+  <div class="agents-inner" style="max-width:1100px;margin:0 auto;padding:120px 0;">
     <div class="section-label reveal">The Suite</div>
     <h2 class="section-title reveal">Three Agents.<br>One Platform.</h2>
 
