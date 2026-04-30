@@ -469,46 +469,54 @@
       <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#c9a84c,transparent);"></div>
       <div class="setup-header">
         <div class="setup-logo">AX<span>O</span>N</div>
-        <div class="setup-step-label" id="step-label">Step 1 of 2 — Choose a template</div>
+        <div class="setup-step-label" id="step-label">Step 1 of 3 — Choose an agent</div>
       </div>
 
-      <!-- STEP 1 -->
-      <div id="step1">
+      <!-- STEP 0 — Agent type picker -->
+      <div id="step0">
         <div class="setup-body">
-          <div class="setup-title">What kind of business?</div>
-          <div class="setup-subtitle">Pick a template and AXON will configure the agent automatically. You can customise everything after launch.</div>
+          <div class="setup-title">Which agent?</div>
+          <div class="setup-subtitle">Each AXON agent is purpose-built for a specific role. Pick one to demo.</div>
           <div class="templates">
-            <div class="template-card" onclick="selectTemplate('ecommerce', this)">
-              <div class="template-icon">🛍️</div>
-              <div class="template-name">E-Commerce</div>
-              <div class="template-desc">Orders, returns, shipping, product questions</div>
+            <div class="template-card" onclick="selectAgentType('support', this)">
+              <div class="template-icon">🤖</div>
+              <div class="template-name">Support Agent</div>
+              <div class="template-desc">24/7 customer support — handles tickets, FAQs, escalations</div>
             </div>
-            <div class="template-card" onclick="selectTemplate('realestate', this)">
-              <div class="template-icon">🏠</div>
-              <div class="template-name">Real Estate</div>
-              <div class="template-desc">Property listings, viewings, mortgage FAQs</div>
+            <div class="template-card" onclick="selectAgentType('sales', this)">
+              <div class="template-icon">📤</div>
+              <div class="template-name">Sales Agent</div>
+              <div class="template-desc">Outreach, lead qualification, follow-up sequences</div>
             </div>
-            <div class="template-card" onclick="selectTemplate('clinic', this)">
-              <div class="template-icon">🏥</div>
-              <div class="template-name">Clinic</div>
-              <div class="template-desc">Appointments, services, insurance, hours</div>
-            </div>
-            <div class="template-card" onclick="selectTemplate('restaurant', this)">
-              <div class="template-icon">🍽️</div>
-              <div class="template-name">Restaurant</div>
-              <div class="template-desc">Reservations, menu, hours, dietary info</div>
+            <div class="template-card" onclick="selectAgentType('ops', this)">
+              <div class="template-icon">⚙️</div>
+              <div class="template-name">Ops Agent</div>
+              <div class="template-desc">Internal workflows, reporting, scheduling, task routing</div>
             </div>
           </div>
+        </div>
+        <div class="setup-footer">
+          <button class="btn-next" id="agent-type-btn" onclick="goStep1()">Next →</button>
+        </div>
+      </div>
+
+      <!-- STEP 1 — Template picker -->
+      <div id="step1" style="display:none;">
+        <div class="setup-body">
+          <div class="setup-title" id="step1-title">What kind of business?</div>
+          <div class="setup-subtitle">Pick a template and AXON configures the agent automatically.</div>
+          <div class="templates" id="template-grid"></div>
           <div class="divider-row">or</div>
           <div class="custom-option" onclick="goStep2()">Configure Custom Business →</div>
         </div>
-        <div class="setup-footer">
+        <div class="setup-footer" style="justify-content:space-between;">
+          <button class="btn-next" style="background:transparent;border:1px solid var(--border-lit);color:var(--muted);opacity:1;pointer-events:auto;" onclick="goStep0()">← Back</button>
           <button class="btn-next" id="next-btn" onclick="launchFromTemplate()">Launch Agent →</button>
         </div>
       </div>
 
-      <!-- STEP 2 -->
-      <div id="step2">
+      <!-- STEP 2 — Custom config -->
+      <div id="step2" style="display:none;">
         <div class="setup-body">
           <div class="setup-title">Configure Your Agent</div>
           <div class="setup-subtitle">AXON will train on this information and deploy your agent in seconds.</div>
@@ -531,13 +539,13 @@
               <option value="luxury">Luxury & refined</option>
             </select>
           </div>
-          <div class="form-row">
-            <label class="form-label">Key FAQs (one per line)</label>
+          <div class="form-row" id="faqs-row">
+            <label class="form-label" id="faqs-label">Key FAQs (one per line)</label>
             <textarea class="form-textarea" id="biz-faqs" placeholder="What are your hours?&#10;Do you offer refunds?&#10;How do I track my order?"></textarea>
           </div>
         </div>
         <div class="setup-footer" style="justify-content:space-between;">
-          <button class="btn-next" style="background:transparent;border:1px solid var(--border-lit);color:var(--muted);opacity:1;pointer-events:auto;" onclick="goBack()">← Back</button>
+          <button class="btn-next" style="background:transparent;border:1px solid var(--border-lit);color:var(--muted);opacity:1;pointer-events:auto;" onclick="goStep1FromCustom()">← Back</button>
           <button class="btn-next enabled" onclick="launchCustom()">Launch Agent →</button>
         </div>
       </div>
@@ -577,69 +585,156 @@
 </div>
 
 <script>
-  // Config
   let agentConfig = {};
   let conversationHistory = [];
   let selectedTemplate = null;
+  let selectedAgentType = null;
   let isTyping = false;
 
-  const TEMPLATES = {
-    ecommerce: {
-      name: 'AXON Support',
-      bizName: 'your store',
-      system: `You are AXON Support, an AI customer support agent for an e-commerce store. You help customers with orders, returns, shipping inquiries, product questions, and account issues. Be helpful, concise, and professional. If you don't know a specific detail, offer to escalate to a human agent. Keep responses under 3 sentences when possible.`
+  // ── AGENT TYPE TEMPLATES ──────────────────────────────────────────
+  const AGENT_TYPES = {
+    support: {
+      label: 'Support Agent',
+      step1Title: 'What kind of business?',
+      templates: {
+        ecommerce: { icon:'🛍️', name:'E-Commerce', desc:'Orders, returns, shipping, product questions',
+          system: `You are AXON Support, an AI customer support agent for an e-commerce store. Help customers with orders, returns, shipping, and product questions. Be helpful, concise, and professional. Keep responses under 3 sentences when possible.`,
+          suggestions: ["Where's my order?", "How do I return an item?", "What's your refund policy?", "Do you offer free shipping?"],
+          welcome: `Hi there! I'm your AXON Support agent. How can I help you today?` },
+        realestate: { icon:'🏠', name:'Real Estate', desc:'Properties, viewings, mortgage FAQs',
+          system: `You are AXON Support for a real estate agency. Help clients with property inquiries, viewing bookings, and mortgage FAQs. Be warm, knowledgeable, and professional.`,
+          suggestions: ["What properties are available?", "How do I book a viewing?", "What areas do you cover?", "Can you help with mortgages?"],
+          welcome: `Hello! I'm your property assistant. What can I help you find today?` },
+        clinic: { icon:'🏥', name:'Clinic', desc:'Appointments, services, insurance, hours',
+          system: `You are AXON Support for a medical clinic. Help patients with appointments, service info, and insurance questions. Be empathetic and professional. For medical advice, always recommend they speak with a provider.`,
+          suggestions: ["How do I book an appointment?", "What insurance do you accept?", "What are your opening hours?", "Do you have weekend slots?"],
+          welcome: `Hello! I'm here to help you with bookings and clinic information. How can I assist?` },
+        restaurant: { icon:'🍽️', name:'Restaurant', desc:'Reservations, menu, hours, dietary info',
+          system: `You are AXON Support for a restaurant. Help guests with reservations, menu questions, dietary requirements, and hours. Be friendly and welcoming.`,
+          suggestions: ["I'd like to make a reservation", "Do you have vegetarian options?", "What are your opening hours?", "Do you cater for large groups?"],
+          welcome: `Welcome! I'm your restaurant assistant. How can I help you today?` }
+      }
     },
-    realestate: {
-      name: 'AXON Support',
-      bizName: 'our agency',
-      system: `You are AXON Support, an AI assistant for a real estate agency. You help prospective buyers and renters with property inquiries, viewing bookings, neighborhood information, and mortgage FAQs. Be warm, knowledgeable, and professional. Keep responses concise and actionable.`
+    sales: {
+      label: 'Sales Agent',
+      step1Title: 'What industry are you targeting?',
+      templates: {
+        saas: { icon:'💻', name:'SaaS / Tech', desc:'B2B software, tools, platforms',
+          system: `You are AXON Sales, an AI sales assistant for a B2B SaaS company. You qualify leads, answer product questions, handle objections, and book demos. Be confident, consultative, and focused on ROI. Keep responses sharp and under 3 sentences.`,
+          suggestions: ["What does your software do?", "How much does it cost?", "Can I book a demo?", "How does it compare to competitors?"],
+          welcome: `Hey! I'm AXON Sales. Looking to learn more, or ready to book a demo?` },
+        agency: { icon:'🎯', name:'Agency', desc:'Marketing, creative, consulting services',
+          system: `You are AXON Sales for a marketing agency. You handle inbound inquiries, qualify prospects, and guide them toward a discovery call. Be consultative and outcome-focused.`,
+          suggestions: ["What services do you offer?", "What results do you get?", "How much do you charge?", "Can we get on a call?"],
+          welcome: `Hi! I'm here to help you figure out if we're the right fit. What are you looking to achieve?` },
+        logistics: { icon:'🚚', name:'Logistics', desc:'Freight, supply chain, B2B shipping',
+          system: `You are AXON Sales for a logistics company. You handle inbound freight inquiries, qualify shipment needs, and move prospects toward a quote. Be efficient and professional.`,
+          suggestions: ["Can you handle international freight?", "What's your pricing model?", "How quickly can you move goods?", "Can I get a quote?"],
+          welcome: `Hello! I can help with freight inquiries and quotes. What are you shipping?` },
+        finance: { icon:'📊', name:'Finance / Insurance', desc:'B2B financial services and products',
+          system: `You are AXON Sales for a financial services firm. You handle inbound inquiries, qualify leads, and guide them toward a consultation. Be professional, compliant in tone, and helpful.`,
+          suggestions: ["What services do you offer?", "Who do you typically work with?", "Can I book a consultation?", "What are your fees?"],
+          welcome: `Hello! I'm here to help you explore our financial services. What are you looking for?` }
+      }
     },
-    clinic: {
-      name: 'AXON Support',
-      bizName: 'our clinic',
-      system: `You are AXON Support, an AI assistant for a medical clinic. You help patients with appointment booking, service information, insurance questions, and general clinic FAQs. Always be empathetic and professional. For medical advice, always recommend they speak directly with a healthcare provider. Keep responses brief and clear.`
-    },
-    restaurant: {
-      name: 'AXON Support',
-      bizName: 'our restaurant',
-      system: `You are AXON Support, an AI assistant for a restaurant. You help guests with reservations, menu questions, dietary requirements, opening hours, and special events. Be friendly, warm, and welcoming. Keep responses concise and helpful.`
+    ops: {
+      label: 'Ops Agent',
+      step1Title: 'What kind of team?',
+      templates: {
+        startup: { icon:'🚀', name:'Startup', desc:'Fast-moving small teams, wearing many hats',
+          system: `You are AXON Ops, an AI operations assistant for a startup. You help with task management, scheduling, reporting, and internal coordination. Be efficient, direct, and action-oriented. Always propose next steps.`,
+          suggestions: ["What's on my plate today?", "Generate a weekly digest", "Schedule a team sync", "What tasks are overdue?"],
+          welcome: `AXON Ops online. What do you need to get done?` },
+        agency: { icon:'🏢', name:'Agency / Studio', desc:'Client work, project delivery, team ops',
+          system: `You are AXON Ops for a creative agency. You help manage project timelines, client deliverables, team capacity, and internal reporting. Be organised and proactive.`,
+          suggestions: ["What projects are due this week?", "Generate a client status report", "Who has bandwidth?", "Send a team update"],
+          welcome: `AXON Ops here. What do you need managed today?` },
+        ecommerce: { icon:'📦', name:'E-Commerce', desc:'Inventory, fulfilment, operations',
+          system: `You are AXON Ops for an e-commerce operation. You help with inventory tracking, fulfilment status, supplier comms, and ops reporting. Be precise and data-focused.`,
+          suggestions: ["What's our stock status?", "Any fulfilment delays?", "Generate an inventory report", "What needs reordering?"],
+          welcome: `AXON Ops active. What operational data do you need?` },
+        enterprise: { icon:'🏗️', name:'Enterprise', desc:'Large org, cross-department coordination',
+          system: `You are AXON Ops for a large enterprise organisation. You handle cross-department coordination, executive reporting, scheduling, and workflow automation. Be formal, thorough, and precise.`,
+          suggestions: ["Generate an executive digest", "Schedule a stakeholder meeting", "What's pending approval?", "Summarise this week's ops"],
+          welcome: `AXON Ops connected. How can I assist operations today?` }
+      }
     }
   };
 
-  const TEMPLATE_SUGGESTIONS = {
-    ecommerce: ["Where's my order?", "How do I return an item?", "What's your refund policy?", "Do you offer free shipping?"],
-    realestate: ["What properties do you have available?", "How do I book a viewing?", "What areas do you cover?", "Can you help with mortgage advice?"],
-    clinic: ["How do I book an appointment?", "What insurance do you accept?", "What are your opening hours?", "Do you have weekend slots?"],
-    restaurant: ["I'd like to make a reservation", "Do you have vegetarian options?", "What are your opening hours?", "Do you cater for large groups?"]
-  };
+  // ── NAVIGATION ────────────────────────────────────────────────────
+  function show(id) {
+    ['step0','step1','step2'].forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.style.display = s === id ? 'block' : 'none';
+    });
+  }
+
+  function selectAgentType(type, el) {
+    selectedAgentType = type;
+    document.querySelectorAll('#step0 .template-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('agent-type-btn').classList.add('enabled');
+  }
+
+  function goStep1() {
+    if (!selectedAgentType) return;
+    selectedTemplate = null;
+    const agent = AGENT_TYPES[selectedAgentType];
+    document.getElementById('step1-title').textContent = agent.step1Title;
+    document.getElementById('step-label').textContent = 'Step 2 of 3 — Choose a template';
+    document.getElementById('next-btn').classList.remove('enabled');
+
+    // Render templates for this agent type
+    const grid = document.getElementById('template-grid');
+    grid.innerHTML = Object.entries(agent.templates).map(([id, t]) => `
+      <div class="template-card" onclick="selectTemplate('${id}', this)">
+        <div class="template-icon">${t.icon}</div>
+        <div class="template-name">${t.name}</div>
+        <div class="template-desc">${t.desc}</div>
+      </div>`).join('');
+    show('step1');
+  }
+
+  function goStep0() {
+    selectedTemplate = null;
+    document.getElementById('step-label').textContent = 'Step 1 of 3 — Choose an agent';
+    show('step0');
+  }
+
+  function goStep2() {
+    document.getElementById('step-label').textContent = 'Step 3 of 3 — Configure your agent';
+    // Update placeholder labels per agent type
+    const labelMap = {
+      support: 'Key FAQs (one per line)',
+      sales: 'Key selling points / objections to handle',
+      ops: 'Key workflows or recurring tasks'
+    };
+    document.getElementById('faqs-label').textContent = labelMap[selectedAgentType] || 'Key Information';
+    show('step2');
+  }
+
+  function goStep1FromCustom() {
+    document.getElementById('step-label').textContent = 'Step 2 of 3 — Choose a template';
+    show('step1');
+  }
 
   function selectTemplate(id, el) {
     selectedTemplate = id;
-    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('#template-grid .template-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     document.getElementById('next-btn').classList.add('enabled');
   }
 
-  function goStep2() {
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = 'block';
-    document.getElementById('step-label').textContent = 'Step 2 of 2 — Configure your agent';
-  }
-
-  function goBack() {
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step-label').textContent = 'Step 1 of 2 — Choose a template';
-  }
-
+  // ── LAUNCH ────────────────────────────────────────────────────────
   function launchFromTemplate() {
-    if (!selectedTemplate) return;
-    const tmpl = TEMPLATES[selectedTemplate];
+    if (!selectedTemplate || !selectedAgentType) return;
+    const t = AGENT_TYPES[selectedAgentType].templates[selectedTemplate];
     agentConfig = {
-      system: tmpl.system,
-      name: tmpl.name,
-      suggestions: TEMPLATE_SUGGESTIONS[selectedTemplate],
-      welcomeMsg: `Hi there! I'm ${tmpl.name}, your AI support assistant. How can I help you today?`
+      system: t.system,
+      name: `AXON ${AGENT_TYPES[selectedAgentType].label.split(' ')[0]}`,
+      agentType: selectedAgentType,
+      suggestions: t.suggestions,
+      welcomeMsg: t.welcome
     };
     launchChat();
   }
@@ -648,18 +743,20 @@
     const name = document.getElementById('biz-name').value || 'your business';
     const industry = document.getElementById('biz-industry').value || 'business';
     const tone = document.getElementById('biz-tone').value;
-    const faqs = document.getElementById('biz-faqs').value;
-    const toneMap = {
-      professional: 'professional and precise',
-      friendly: 'friendly and warm',
-      concise: 'concise and direct',
-      luxury: 'refined, sophisticated, and premium'
+    const extra = document.getElementById('biz-faqs').value;
+    const toneMap = { professional:'professional and precise', friendly:'friendly and warm', concise:'concise and direct', luxury:'refined, sophisticated, and premium' };
+    const agentRoleMap = {
+      support: `customer support agent for ${name}. Help customers with questions and issues.`,
+      sales: `sales agent for ${name}. Qualify leads, answer product questions, and guide prospects toward a meeting or purchase.`,
+      ops: `operations assistant for ${name}. Help with task management, reporting, scheduling, and internal coordination.`
     };
+    const agentLabel = AGENT_TYPES[selectedAgentType].label;
     agentConfig = {
-      system: `You are AXON Support, an AI customer support agent for ${name}, a ${industry} business. Be ${toneMap[tone]}. Help customers with their questions and issues.${faqs ? ` Key information:\n${faqs}` : ''} Keep responses clear and helpful. If asked something you can't answer, offer to connect them with the team.`,
-      name: `${name} Support`,
-      suggestions: ["How can you help me?", "What are your hours?", "I need assistance", "Tell me more about your services"],
-      welcomeMsg: `Hi! I'm the AI assistant for ${name}. What can I help you with today?`
+      system: `You are AXON ${agentLabel.split(' ')[0]}, an AI ${agentRoleMap[selectedAgentType]} Be ${toneMap[tone]}.${extra ? ` Key information:\n${extra}` : ''} Keep responses clear and concise.`,
+      name: `${name} ${agentLabel.split(' ')[0]}`,
+      agentType: selectedAgentType,
+      suggestions: ["How can you help me?", "Tell me more", "What can you do?", "Let's get started"],
+      welcomeMsg: `Hi! I'm the AXON ${agentLabel.split(' ')[0]} for ${name}. How can I help?`
     };
     launchChat();
   }
@@ -668,19 +765,13 @@
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('chat-screen').classList.add('active');
     document.getElementById('agent-display-name').textContent = agentConfig.name;
-
-    // Init suggestions
     renderSuggestions(agentConfig.suggestions);
-
-    // Welcome message
-    setTimeout(() => {
-      addMessage('agent', agentConfig.welcomeMsg);
-    }, 400);
+    setTimeout(() => addMessage('agent', agentConfig.welcomeMsg), 400);
   }
 
+  // ── CHAT ──────────────────────────────────────────────────────────
   function renderSuggestions(list) {
-    const area = document.getElementById('suggestions');
-    area.innerHTML = list.map(s =>
+    document.getElementById('suggestions').innerHTML = list.map(s =>
       `<button class="suggestion-pill" onclick="sendSuggestion('${s.replace(/'/g, "\\'")}')">${s}</button>`
     ).join('');
   }
@@ -691,10 +782,7 @@
   }
 
   function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
   async function sendMessage() {
@@ -702,38 +790,27 @@
     const text = input.value.trim();
     if (!text || isTyping) return;
     input.value = '';
-
-    // Hide suggestions after first user message
     document.getElementById('suggestions').innerHTML = '';
-
     addMessage('user', text);
     conversationHistory.push({ role: 'user', content: text });
-
     showTyping();
     isTyping = true;
     document.getElementById('send-btn').disabled = true;
-
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: agentConfig.system,
-          messages: conversationHistory
-        })
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: agentConfig.system, messages: conversationHistory })
       });
       const data = await response.json();
-      const reply = data.content?.[0]?.text || "I'm sorry, I encountered an issue. Please try again.";
+      const reply = data.content?.[0]?.text || "I'm having trouble connecting. Please try again.";
       conversationHistory.push({ role: 'assistant', content: reply });
       hideTyping();
       addMessage('agent', reply, true);
-    } catch (err) {
+    } catch {
       hideTyping();
       addMessage('agent', "Connection issue. Please check your network and try again.");
     }
-
     isTyping = false;
     document.getElementById('send-btn').disabled = false;
   }
@@ -742,71 +819,47 @@
     const area = document.getElementById('messages');
     const row = document.createElement('div');
     row.className = `msg-row ${role}`;
-
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar';
     avatar.textContent = role === 'agent' ? 'AX' : 'YOU';
-
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
-
     row.appendChild(avatar);
     row.appendChild(bubble);
     area.appendChild(row);
     area.scrollTop = area.scrollHeight;
-
     if (typewrite && role === 'agent') {
       bubble.classList.add('typewriter');
       let i = 0;
-      const speed = 18;
       function type() {
-        if (i < text.length) {
-          bubble.textContent = text.slice(0, ++i);
-          area.scrollTop = area.scrollHeight;
-          setTimeout(type, speed);
-        } else {
-          bubble.classList.remove('typewriter');
-        }
+        if (i < text.length) { bubble.textContent = text.slice(0, ++i); area.scrollTop = area.scrollHeight; setTimeout(type, 16); }
+        else bubble.classList.remove('typewriter');
       }
       type();
-    } else {
-      bubble.textContent = text;
-    }
+    } else { bubble.textContent = text; }
     area.scrollTop = area.scrollHeight;
   }
 
   function showTyping() {
     const area = document.getElementById('messages');
     const row = document.createElement('div');
-    row.className = 'msg-row agent';
-    row.id = 'typing-row';
-    row.innerHTML = `
-      <div class="msg-avatar">AX</div>
-      <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>`;
+    row.className = 'msg-row agent'; row.id = 'typing-row';
+    row.innerHTML = `<div class="msg-avatar">AX</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
     area.appendChild(row);
     area.scrollTop = area.scrollHeight;
   }
 
-  function hideTyping() {
-    const tr = document.getElementById('typing-row');
-    if (tr) tr.remove();
-  }
+  function hideTyping() { const tr = document.getElementById('typing-row'); if (tr) tr.remove(); }
 
   function reconfigure() {
-    conversationHistory = [];
-    selectedTemplate = null;
+    conversationHistory = []; selectedTemplate = null; selectedAgentType = null;
     document.getElementById('messages').innerHTML = '';
     document.getElementById('chat-screen').classList.remove('active');
     document.getElementById('setup-screen').style.display = 'flex';
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step-label').textContent = 'Step 1 of 2 — Choose a template';
+    document.getElementById('step-label').textContent = 'Step 1 of 3 — Choose an agent';
     document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById('next-btn').classList.remove('enabled');
+    document.getElementById('agent-type-btn').classList.remove('enabled');
+    show('step0');
   }
 </script>
 </body>
