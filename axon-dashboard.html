@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXON — Operator Dashboard</title>
+<title>Vela — Operator Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --black: #080808; --void: #0a0a0a; --surface: #111111; --surface2: #161616; --surface3: #1a1a1a;
+    --black: #080808; --void: #0a0a0a; --surface: #111111; --surface2: #161616;
     --border: rgba(255,255,255,0.07); --border-lit: rgba(255,255,255,0.13);
-    --gold: #c9a84c; --gold-dim: rgba(201,168,76,0.12); --gold-glow: rgba(201,168,76,0.3);
+    --gold: #c9a84c; --gold-dim: rgba(201,168,76,0.12);
     --white: #f0ede8; --muted: rgba(240,237,232,0.45); --dim: rgba(240,237,232,0.12);
     --green: #4ade80; --red: #f87171; --blue: #60a5fa;
     --sidebar-w: 220px;
@@ -19,134 +19,112 @@
   html, body { height: 100%; overflow: hidden; }
   body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; display: flex; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: var(--sidebar-w); flex-shrink: 0;
-    background: var(--void);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    height: 100vh; position: fixed; left: 0; top: 0; z-index: 50;
-  }
-  .sidebar-logo {
-    padding: 24px 20px 20px;
-    border-bottom: 1px solid var(--border);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px; letter-spacing: 6px;
-    color: var(--white);
-  }
-  .sidebar-logo span { color: var(--gold); }
-  .sidebar-label {
-    font-family: 'DM Mono', monospace; font-size: 9px;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: var(--dim); padding: 20px 20px 8px;
-  }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 20px; cursor: pointer;
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); transition: all 0.15s;
-    border-left: 2px solid transparent;
-  }
-  .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
-  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
-  .nav-icon { font-size: 14px; width: 16px; text-align: center; }
-  .sidebar-bottom {
-    margin-top: auto;
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    letter-spacing: 1px; color: var(--dim);
-  }
-  .sidebar-user { display: flex; align-items: center; gap: 10px; }
-  .user-avatar {
-    width: 28px; height: 28px;
-    background: var(--gold-dim);
-    border: 1px solid rgba(201,168,76,0.3);
+  /* ── PASSWORD GATE ─────────────────────────────── */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--black);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif; font-size: 11px; color: var(--gold);
+    flex-direction: column; gap: 0;
   }
+  .gate-box {
+    width: 100%; max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border-lit);
+    position: relative;
+  }
+  .gate-box::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+  .gate-header { padding: 28px 28px 20px; border-bottom: 1px solid var(--border); }
+  .gate-logo { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:6px; margin-bottom:4px; }
+  .gate-logo span { color: var(--gold); }
+  .gate-sub { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); }
+  .gate-body { padding: 24px 28px 28px; }
+  .gate-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
+  .gate-input {
+    width:100%; background:var(--void); border:1px solid var(--border-lit);
+    padding:12px 14px; font-family:'DM Mono',monospace; font-size:14px;
+    color:var(--white); outline:none; letter-spacing:4px; margin-bottom:12px;
+    transition:border-color 0.2s;
+  }
+  .gate-input:focus { border-color:var(--gold); }
+  .gate-btn {
+    width:100%; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px;
+    text-transform:uppercase; background:var(--gold); color:var(--black);
+    border:none; padding:13px; cursor:pointer; font-weight:500; transition:background 0.2s;
+  }
+  .gate-btn:hover { background:#e0ba5a; }
+  .gate-error { font-family:'DM Mono',monospace; font-size:10px; color:var(--red); margin-top:8px; display:none; letter-spacing:1px; }
+  .gate-hint { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); text-align:center; margin-top:12px; }
 
-  /* MAIN */
-  .main {
-    margin-left: var(--sidebar-w);
-    flex: 1; height: 100vh; overflow-y: auto;
-    display: flex; flex-direction: column;
+  /* ── SIDEBAR ───────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink:0;
+    background: var(--void); border-right:1px solid var(--border);
+    display:flex; flex-direction:column;
+    height:100vh; position:fixed; left:0; top:0; z-index:50;
   }
-  .main::-webkit-scrollbar { width: 4px; }
-  .main::-webkit-scrollbar-thumb { background: var(--border-lit); }
+  .sidebar-logo { padding:22px 20px 18px; border-bottom:1px solid var(--border); font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:6px; }
+  .sidebar-logo span { color:var(--gold); }
+  .sidebar-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); padding:18px 20px 6px; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:11px 20px; cursor:pointer;
+    font-family:'DM Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--muted); border-left:2px solid transparent; transition:all 0.15s; position:relative;
+  }
+  .nav-item:hover { color:var(--white); background:rgba(255,255,255,0.03); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:var(--gold-dim); }
+  .nav-badge {
+    margin-left:auto; background:var(--red); color:#fff;
+    font-size:9px; padding:1px 6px; border-radius:10px; font-weight:600;
+  }
+  .sidebar-bottom { margin-top:auto; padding:14px 20px; border-top:1px solid var(--border); }
+  .sidebar-user { display:flex; align-items:center; gap:10px; }
+  .user-avatar { width:28px; height:28px; background:var(--gold-dim); border:1px solid rgba(201,168,76,0.3); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:11px; color:var(--gold); }
+  .logout-btn { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; background:none; border:none; color:var(--dim); cursor:pointer; margin-top:8px; transition:color 0.2s; }
+  .logout-btn:hover { color:var(--red); }
 
-  /* TOP BAR */
-  .topbar {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 14px 28px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 40;
-    flex-shrink: 0;
-  }
-  .topbar-title {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: var(--muted);
-  }
-  .topbar-right { display: flex; gap: 12px; align-items: center; }
-  .btn-add {
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    letter-spacing: 2px; text-transform: uppercase;
-    background: var(--gold); color: var(--black);
-    border: none; padding: 8px 18px; cursor: pointer;
-    font-weight: 500; transition: background 0.2s;
-  }
-  .btn-add:hover { background: #e0ba5a; }
-  .status-pill {
-    font-family: 'DM Mono', monospace; font-size: 9px;
-    letter-spacing: 2px; padding: 5px 10px;
-    display: flex; align-items: center; gap: 6px;
-    border: 1px solid rgba(74,222,128,0.25);
-    color: var(--green);
-  }
-  .pulse { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse-dot 2s infinite; }
+  /* ── MAIN ──────────────────────────────────────── */
+  .main { margin-left:var(--sidebar-w); flex:1; height:100vh; overflow-y:auto; display:flex; flex-direction:column; }
+  .main::-webkit-scrollbar { width:4px; }
+  .main::-webkit-scrollbar-thumb { background:var(--border-lit); }
+
+  .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; flex-shrink:0; }
+  .topbar-title { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); }
+  .topbar-right { display:flex; gap:12px; align-items:center; }
+  .btn-add { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:var(--gold); color:var(--black); border:none; padding:8px 18px; cursor:pointer; font-weight:500; transition:background 0.2s; }
+  .btn-add:hover { background:#e0ba5a; }
+  .status-pill { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; padding:5px 10px; display:flex; align-items:center; gap:6px; border:1px solid rgba(74,222,128,0.25); color:var(--green); }
+  .pulse { width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse-dot 2s infinite; }
   @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  /* VIEWS */
-  .view { display: none; padding: 28px; flex: 1; }
-  .view.active { display: block; }
+  /* ── VIEWS ─────────────────────────────────────── */
+  .view { display:none; padding:28px; flex:1; }
+  .view.active { display:block; }
 
-  /* KPI CARDS */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px; }
-  .kpi-card {
-    background: var(--surface); padding: 24px 20px;
-    position: relative; transition: background 0.2s;
-  }
-  .kpi-card:hover { background: var(--surface2); }
-  .kpi-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background: linear-gradient(90deg, var(--gold), transparent); opacity: 0; transition: opacity 0.2s; }
-  .kpi-card:hover::before { opacity: 1; }
+  /* ── KPI CARDS ─────────────────────────────────── */
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:24px; }
+  .kpi-card { background:var(--surface); padding:24px 20px; position:relative; transition:background 0.2s; }
+  .kpi-card:hover { background:var(--surface2); }
+  .kpi-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); opacity:0; transition:opacity 0.2s; }
+  .kpi-card:hover::before { opacity:1; }
   .kpi-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
   .kpi-value { font-family:'Bebas Neue',sans-serif; font-size:40px; letter-spacing:2px; line-height:1; color:var(--white); margin-bottom:4px; }
   .kpi-delta { font-family:'DM Mono',monospace; font-size:10px; }
-  .kpi-delta.up { color: var(--green); }
-  .kpi-delta.neutral { color: var(--muted); }
+  .kpi-delta.up { color:var(--green); }
+  .kpi-delta.neutral { color:var(--muted); }
 
-  /* CHARTS */
-  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .chart-card {
-    background: var(--surface); border: 1px solid var(--border); padding: 20px 24px;
-    position: relative;
-  }
-  .chart-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, var(--gold), transparent); opacity:0.5; }
+  /* ── CHARTS ────────────────────────────────────── */
+  .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
+  .chart-card { background:var(--surface); border:1px solid var(--border); padding:20px 24px; position:relative; }
+  .chart-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,var(--gold),transparent); opacity:0.5; }
   .chart-title { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
   .bar-chart { display:flex; align-items:flex-end; gap:6px; height:100px; }
   .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .bar {
-    width:100%; background:var(--gold-dim); border-top: 2px solid var(--gold);
-    transition: height 0.5s ease, background 0.2s;
-    cursor:default;
-  }
-  .bar:hover { background: rgba(201,168,76,0.25); }
+  .bar { width:100%; background:var(--gold-dim); border-top:2px solid var(--gold); transition:height 0.5s ease; cursor:default; }
+  .bar:hover { background:rgba(201,168,76,0.25); }
   .bar-label { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--dim); }
   .donut-wrap { display:flex; align-items:center; justify-content:center; flex-direction:column; height:100px; gap:8px; }
   .donut-ring { position:relative; width:80px; height:80px; }
-  .donut-ring svg { transform: rotate(-90deg); }
+  .donut-ring svg { transform:rotate(-90deg); }
   .donut-center { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
   .donut-val { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:2px; color:var(--gold); }
   .donut-sub { font-family:'DM Mono',monospace; font-size:8px; color:var(--dim); }
@@ -154,87 +132,44 @@
   .legend-item { display:flex; align-items:center; gap:8px; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }
   .legend-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 
-  /* CLIENT TABLE */
+  /* ── TABLE ─────────────────────────────────────── */
   .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .section-h { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); }
   table { width:100%; border-collapse:collapse; }
-  thead tr { border-bottom: 1px solid var(--border); }
+  thead tr { border-bottom:1px solid var(--border); }
   th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); padding:10px 14px; text-align:left; }
-  td { padding:12px 14px; font-size:13px; border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: none; }
-  tbody tr { transition: background 0.15s; cursor:pointer; }
-  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  td { padding:12px 14px; font-size:13px; border-bottom:1px solid var(--border); }
+  tr:last-child td { border-bottom:none; }
+  tbody tr { transition:background 0.15s; cursor:pointer; }
+  tbody tr:hover { background:rgba(255,255,255,0.03); }
   .client-name { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:1px; color:var(--white); }
-  .plan-badge {
-    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase;
-    padding:3px 8px; border: 1px solid var(--border-lit); color:var(--muted);
-  }
-  .plan-badge.growth { border-color: rgba(201,168,76,0.4); color: var(--gold); }
-  .plan-badge.enterprise { border-color: rgba(96,165,250,0.4); color: var(--blue); }
+  .plan-badge { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border:1px solid var(--border-lit); color:var(--muted); }
+  .plan-badge.growth { border-color:rgba(201,168,76,0.4); color:var(--gold); }
+  .plan-badge.enterprise { border-color:rgba(96,165,250,0.4); color:var(--blue); }
   .sat-bar { height:4px; background:var(--border); width:80px; position:relative; }
   .sat-fill { height:100%; background:var(--gold); }
   .revenue-cell { font-family:'DM Mono',monospace; font-size:12px; color:var(--green); }
-  .agents-cell { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
 
-  /* $1M TRACKER */
+  /* ── TRACKER ───────────────────────────────────── */
   .tracker-card { background:var(--surface); border:1px solid var(--border); padding:20px 24px; margin-top:16px; position:relative; }
-  .tracker-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, var(--gold),transparent); opacity:0.5; }
+  .tracker-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,var(--gold),transparent); opacity:0.5; }
   .tracker-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .tracker-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
   .tracker-val { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:2px; color:var(--gold); }
   .progress-bar { height:6px; background:var(--border); position:relative; overflow:hidden; }
-  .progress-fill { height:100%; background: linear-gradient(90deg, var(--gold), #e0ba5a); transition: width 1s ease; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),#e0ba5a); transition:width 1s ease; }
   .progress-labels { display:flex; justify-content:space-between; margin-top:6px; font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); }
 
-  /* CLIENT DETAIL MODAL */
-  .modal-overlay {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center;
-  }
-  .modal-overlay.open { display:flex; }
-  .modal-box {
-    background:var(--surface); border:1px solid var(--border-lit); width:680px; max-height:85vh; overflow-y:auto;
-    position:relative;
-  }
-  .modal-box::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
-  .modal-header { padding:24px 28px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-  .modal-name { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:3px; }
-  .modal-close { background:none; border:1px solid var(--border-lit); color:var(--muted); padding:6px 12px; cursor:pointer; font-family:'DM Mono',monospace; font-size:10px; transition:all 0.2s; }
-  .modal-close:hover { border-color:var(--gold); color:var(--gold); }
-  .modal-tabs { display:flex; border-bottom:1px solid var(--border); }
-  .modal-tab { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:12px 20px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; }
-  .modal-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
-  .modal-tab-content { padding:24px 28px; }
-  .modal-tab-panel { display:none; }
-  .modal-tab-panel.active { display:block; }
-  .detail-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
-  .detail-stat { background:var(--surface2); padding:16px; }
-  .detail-stat-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
-  .detail-stat-val { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:var(--gold); }
-  .chat-log { display:flex; flex-direction:column; gap:8px; }
-  .log-item { padding:12px 14px; background:var(--surface2); border-left:2px solid var(--border-lit); }
-  .log-meta { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--dim); margin-bottom:4px; }
-  .log-text { font-size:13px; color:var(--muted); line-height:1.5; }
+  /* ── LEADS VIEW ────────────────────────────────── */
+  .leads-empty { text-align:center; padding:60px 20px; font-family:'DM Mono',monospace; font-size:11px; color:var(--dim); letter-spacing:2px; }
+  .lead-row-status { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; padding:3px 8px; border:1px solid; }
+  .lead-row-status.new { border-color:rgba(201,168,76,0.4); color:var(--gold); }
+  .lead-row-status.contacted { border-color:rgba(96,165,250,0.3); color:var(--blue); }
+  .lead-row-status.converted { border-color:rgba(74,222,128,0.3); color:var(--green); }
+  .lead-action-btn { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; text-transform:uppercase; background:transparent; border:1px solid var(--border-lit); color:var(--muted); padding:5px 10px; cursor:pointer; transition:all 0.2s; }
+  .lead-action-btn:hover { border-color:var(--gold); color:var(--gold); }
 
-  /* NEW CLIENT MODAL */
-  .nc-form { padding:24px 28px; }
-  .nc-row { margin-bottom:16px; }
-  .nc-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
-  .nc-input, .nc-select {
-    width:100%; background:var(--void); border:1px solid var(--border-lit);
-    padding:11px 14px; font-family:'DM Mono',monospace; font-size:12px; color:var(--white); outline:none;
-    transition:border-color 0.2s;
-  }
-  .nc-input::placeholder { color:var(--dim); }
-  .nc-input:focus, .nc-select:focus { border-color:var(--gold); }
-  .nc-select { appearance:none; cursor:pointer; }
-  .nc-select option { background:var(--surface); }
-  .nc-footer { padding:16px 28px 24px; display:flex; gap:10px; justify-content:flex-end; border-top:1px solid var(--border); }
-  .btn-cancel { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:transparent; border:1px solid var(--border-lit); color:var(--muted); padding:10px 20px; cursor:pointer; transition:all 0.2s; }
-  .btn-cancel:hover { border-color:var(--border-lit); color:var(--white); }
-  .btn-confirm { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:var(--gold); color:var(--black); border:none; padding:10px 20px; cursor:pointer; font-weight:500; transition:background 0.2s; }
-  .btn-confirm:hover { background:#e0ba5a; }
-
-  /* REVENUE VIEW */
+  /* ── REVENUE ───────────────────────────────────── */
   .rev-big { font-family:'Bebas Neue',sans-serif; font-size:72px; letter-spacing:4px; color:var(--gold); line-height:1; }
   .rev-sub { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--muted); margin-top:4px; }
   .rev-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); margin:24px 0; }
@@ -248,67 +183,7 @@
   .rev-bar-fill { height:100%; background:var(--gold); }
   .client-rev-amount { font-family:'DM Mono',monospace; font-size:11px; color:var(--green); width:60px; text-align:right; flex-shrink:0; }
 
-  /* SETTINGS VIEW */
-  .settings-grid { display: grid; grid-template-columns: 260px 1fr; gap: 0; height: 100%; }
-  .settings-sidebar { border-right: 1px solid var(--border); padding: 0; }
-  .settings-nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 20px; cursor: pointer;
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); border-left: 2px solid transparent;
-    transition: all 0.15s;
-  }
-  .settings-nav-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
-  .settings-nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
-  .settings-nav-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim); padding: 16px 20px 6px; }
-  .settings-panel { display: none; padding: 28px 32px; overflow-y: auto; }
-  .settings-panel.active { display: block; }
-  .settings-panel::-webkit-scrollbar { width: 3px; }
-  .settings-panel::-webkit-scrollbar-thumb { background: var(--border-lit); }
-  .sp-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; margin-bottom: 4px; }
-  .sp-sub { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 24px; }
-  .sp-section { margin-bottom: 28px; }
-  .sp-section-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-  .sp-field { margin-bottom: 16px; }
-  .sp-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
-  .sp-input, .sp-select, .sp-textarea {
-    width: 100%; background: var(--void); border: 1px solid var(--border-lit);
-    padding: 10px 13px; font-family: 'DM Mono', monospace; font-size: 12px;
-    color: var(--white); outline: none; transition: border-color 0.2s;
-  }
-  .sp-input::placeholder, .sp-textarea::placeholder { color: var(--dim); }
-  .sp-input:focus, .sp-select:focus, .sp-textarea:focus { border-color: var(--gold); }
-  .sp-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
-  .sp-select { appearance: none; cursor: pointer; }
-  .sp-select option { background: var(--surface); }
-  .sp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .sp-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 8px; }
-  .sp-toggle-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--white); }
-  .sp-toggle-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .sp-toggle {
-    width: 36px; height: 20px; background: var(--border-lit); border-radius: 10px;
-    position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
-  }
-  .sp-toggle.on { background: var(--gold); }
-  .sp-toggle::after {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 16px; height: 16px; background: var(--black); border-radius: 50%;
-    transition: left 0.2s;
-  }
-  .sp-toggle.on::after { left: 18px; }
-  .sp-save-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
-  .sp-save-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; background: var(--gold); color: var(--black); border: none; padding: 10px 24px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
-  .sp-save-btn:hover { background: #e0ba5a; }
-  .sp-reset-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; background: transparent; border: 1px solid var(--border-lit); color: var(--muted); padding: 10px 18px; cursor: pointer; transition: all 0.2s; }
-  .sp-reset-btn:hover { border-color: var(--red); color: var(--red); }
-  .sp-badge { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 2px; padding: 3px 8px; border: 1px solid rgba(74,222,128,0.3); color: var(--green); margin-left: 8px; }
-  .sp-danger-zone { border: 1px solid rgba(248,113,113,0.2); padding: 16px 18px; margin-top: 8px; }
-  .sp-danger-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
-  .sp-danger-btn { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; background: transparent; border: 1px solid rgba(248,113,113,0.4); color: var(--red); padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
-  .sp-danger-btn:hover { background: rgba(248,113,113,0.1); }
-  .sp-save-confirm { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--green); display: none; align-items: center; gap: 6px; }
-  .sp-save-confirm.show { display: flex; }
+  /* ── AGENTS VIEW ───────────────────────────────── */
   .agents-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
   .agent-card { background:var(--surface); border:1px solid var(--border); padding:28px 24px; position:relative; }
   .agent-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
@@ -319,43 +194,121 @@
   .agent-card-num { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:2px; color:var(--gold); }
   .agent-card-unit { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--muted); }
   .agent-card-deploy { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-top:2px; }
+
+  /* ── SETTINGS ──────────────────────────────────── */
+  .settings-grid { display:grid; grid-template-columns:240px 1fr; height:100%; }
+  .settings-sidebar { border-right:1px solid var(--border); }
+  .settings-nav-item { display:flex; align-items:center; gap:10px; padding:11px 20px; cursor:pointer; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); border-left:2px solid transparent; transition:all 0.15s; }
+  .settings-nav-item:hover { color:var(--white); background:rgba(255,255,255,0.03); }
+  .settings-nav-item.active { color:var(--gold); border-left-color:var(--gold); background:var(--gold-dim); }
+  .settings-nav-label { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); padding:16px 20px 6px; }
+  .settings-panel { display:none; padding:28px 32px; overflow-y:auto; }
+  .settings-panel.active { display:block; }
+  .sp-title { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:3px; margin-bottom:4px; }
+  .sp-sub { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:24px; }
+  .sp-section { margin-bottom:28px; }
+  .sp-section-title { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .sp-field { margin-bottom:16px; }
+  .sp-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; display:block; }
+  .sp-input,.sp-select,.sp-textarea { width:100%; background:var(--void); border:1px solid var(--border-lit); padding:10px 13px; font-family:'DM Mono',monospace; font-size:12px; color:var(--white); outline:none; transition:border-color 0.2s; }
+  .sp-input:focus,.sp-select:focus,.sp-textarea:focus { border-color:var(--gold); }
+  .sp-textarea { resize:vertical; min-height:72px; line-height:1.5; }
+  .sp-select { appearance:none; cursor:pointer; }
+  .sp-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .sp-toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); margin-bottom:8px; }
+  .sp-toggle-label { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--white); }
+  .sp-toggle-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+  .sp-toggle { width:36px; height:20px; background:var(--border-lit); border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+  .sp-toggle.on { background:var(--gold); }
+  .sp-toggle::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; background:var(--black); border-radius:50%; transition:left 0.2s; }
+  .sp-toggle.on::after { left:18px; }
+  .sp-save-row { display:flex; justify-content:flex-end; gap:10px; margin-top:8px; align-items:center; }
+  .sp-save-btn { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:var(--gold); color:var(--black); border:none; padding:10px 24px; cursor:pointer; font-weight:500; transition:background 0.2s; }
+  .sp-save-btn:hover { background:#e0ba5a; }
+  .sp-reset-btn { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:transparent; border:1px solid var(--border-lit); color:var(--muted); padding:10px 18px; cursor:pointer; transition:all 0.2s; }
+  .sp-reset-btn:hover { border-color:var(--red); color:var(--red); }
+  .sp-save-confirm { font-family:'DM Mono',monospace; font-size:10px; color:var(--green); display:none; align-items:center; gap:6px; }
+  .sp-save-confirm.show { display:flex; }
+  .detail-stat { background:var(--surface2); padding:16px; }
+  .detail-stat-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  .detail-stat-val { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:var(--gold); }
+
+  /* ── MODALS ────────────────────────────────────── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:var(--surface); border:1px solid var(--border-lit); width:680px; max-height:85vh; overflow-y:auto; position:relative; }
+  .modal-box::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+  .modal-header { padding:24px 28px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-name { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:3px; }
+  .modal-close { background:none; border:1px solid var(--border-lit); color:var(--muted); padding:6px 12px; cursor:pointer; font-family:'DM Mono',monospace; font-size:10px; transition:all 0.2s; }
+  .modal-close:hover { border-color:var(--gold); color:var(--gold); }
+  .modal-tabs { display:flex; border-bottom:1px solid var(--border); }
+  .modal-tab { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:12px 20px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; }
+  .modal-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .modal-tab-content { padding:24px 28px; }
+  .modal-tab-panel { display:none; }
+  .modal-tab-panel.active { display:block; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+  .chat-log { display:flex; flex-direction:column; gap:8px; }
+  .log-item { padding:12px 14px; background:var(--surface2); border-left:2px solid var(--border-lit); }
+  .log-meta { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--dim); margin-bottom:4px; }
+  .log-text { font-size:13px; color:var(--muted); line-height:1.5; }
+  .nc-form { padding:24px 28px; }
+  .nc-row { margin-bottom:16px; }
+  .nc-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
+  .nc-input,.nc-select { width:100%; background:var(--void); border:1px solid var(--border-lit); padding:11px 14px; font-family:'DM Mono',monospace; font-size:12px; color:var(--white); outline:none; transition:border-color 0.2s; }
+  .nc-input:focus,.nc-select:focus { border-color:var(--gold); }
+  .nc-select { appearance:none; cursor:pointer; }
+  .nc-footer { padding:16px 28px 24px; display:flex; gap:10px; justify-content:flex-end; border-top:1px solid var(--border); }
+  .btn-cancel { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:transparent; border:1px solid var(--border-lit); color:var(--muted); padding:10px 20px; cursor:pointer; transition:all 0.2s; }
+  .btn-cancel:hover { color:var(--white); }
+  .btn-confirm { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; background:var(--gold); color:var(--black); border:none; padding:10px 20px; cursor:pointer; font-weight:500; }
+  .btn-confirm:hover { background:#e0ba5a; }
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- ── PASSWORD GATE ──────────────────────────────── -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-header">
+      <div class="gate-logo">VE<span>L</span>A</div>
+      <div class="gate-sub">Operator Dashboard · Private Access</div>
+    </div>
+    <div class="gate-body">
+      <label class="gate-label">Enter your password</label>
+      <input class="gate-input" type="password" id="gate-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+      <button class="gate-btn" onclick="checkPassword()">Enter Dashboard →</button>
+      <div class="gate-error" id="gate-error">Incorrect password. Try again.</div>
+    </div>
+  </div>
+  <div class="gate-hint">Change your password in Settings → Operator Profile</div>
+</div>
+
+<!-- ── SIDEBAR ────────────────────────────────────── -->
 <aside class="sidebar">
-  <div class="sidebar-logo">AX<span>O</span>N</div>
+  <div class="sidebar-logo">VE<span>L</span>A</div>
   <div class="sidebar-label">Main</div>
-  <div class="nav-item active" onclick="showView('dashboard',this)">
-    <span class="nav-icon">◈</span> Dashboard
-  </div>
-  <div class="nav-item" onclick="showView('clients',this)">
-    <span class="nav-icon">◉</span> Clients
-  </div>
-  <div class="nav-item" onclick="showView('revenue',this)">
-    <span class="nav-icon">◎</span> Revenue
-  </div>
-  <div class="nav-item" onclick="showView('agents',this)">
-    <span class="nav-icon">◌</span> Agents
-  </div>
-  <div class="nav-item" onclick="showView('settings',this)">
-    <span class="nav-icon">◍</span> Settings
-  </div>
+  <div class="nav-item active" onclick="showView('dashboard',this)"><span>◈</span> Dashboard</div>
+  <div class="nav-item" onclick="showView('leads',this)"><span>◎</span> Leads <span class="nav-badge" id="leads-badge">0</span></div>
+  <div class="nav-item" onclick="showView('clients',this)"><span>◉</span> Clients</div>
+  <div class="nav-item" onclick="showView('revenue',this)"><span>◌</span> Revenue</div>
+  <div class="nav-item" onclick="showView('agents',this)"><span>◍</span> Agents</div>
+  <div class="nav-item" onclick="showView('settings',this)"><span>⊙</span> Settings</div>
   <div class="sidebar-bottom">
     <div class="sidebar-user">
       <div class="user-avatar">OP</div>
       <div>
         <div style="color:var(--muted);font-size:11px;">Operator</div>
-        <div style="color:var(--dim);font-size:9px;margin-top:1px;">axon.dashboard</div>
+        <div style="color:var(--dim);font-size:9px;margin-top:1px;">vela.dashboard</div>
       </div>
     </div>
+    <button class="logout-btn" onclick="logout()">← Log out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
+<!-- ── MAIN ──────────────────────────────────────── -->
 <main class="main">
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title" id="view-title">Dashboard</div>
     <div class="topbar-right">
@@ -367,46 +320,23 @@
   <!-- DASHBOARD VIEW -->
   <div class="view active" id="view-dashboard">
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Monthly Recurring Revenue</div>
-        <div class="kpi-value" id="kpi-mrr">$0</div>
-        <div class="kpi-delta up" id="kpi-mrr-delta">↑ +0% from last month</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Active Clients</div>
-        <div class="kpi-value" id="kpi-clients">0</div>
-        <div class="kpi-delta neutral">of 70 to $1M ARR</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Conversations This Month</div>
-        <div class="kpi-value">12.4K</div>
-        <div class="kpi-delta up">↑ +18% from last month</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Avg. Satisfaction Score</div>
-        <div class="kpi-value" id="kpi-sat">—</div>
-        <div class="kpi-delta up">↑ +3pts from last month</div>
-      </div>
+      <div class="kpi-card"><div class="kpi-label">Monthly Recurring Revenue</div><div class="kpi-value" id="kpi-mrr">$0</div><div class="kpi-delta up" id="kpi-mrr-delta">↑ 0% of $1M target</div></div>
+      <div class="kpi-card"><div class="kpi-label">Active Clients</div><div class="kpi-value" id="kpi-clients">0</div><div class="kpi-delta neutral">of 70 to $1M ARR</div></div>
+      <div class="kpi-card"><div class="kpi-label">Waitlist Leads</div><div class="kpi-value" id="kpi-leads">0</div><div class="kpi-delta up" id="kpi-leads-delta">pending follow-up</div></div>
+      <div class="kpi-card"><div class="kpi-label">Avg. Satisfaction</div><div class="kpi-value" id="kpi-sat">—</div><div class="kpi-delta up">↑ +3pts from last month</div></div>
     </div>
-
     <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-title">MRR Growth — Last 6 Months</div>
-        <div class="bar-chart" id="mrr-chart"></div>
-      </div>
+      <div class="chart-card"><div class="chart-title">MRR Growth — Last 6 Months</div><div class="bar-chart" id="mrr-chart"></div></div>
       <div class="chart-card">
         <div class="chart-title">Revenue by Plan</div>
         <div class="donut-wrap">
           <div class="donut-ring">
             <svg width="80" height="80" viewBox="0 0 80 80">
               <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
-              <circle cx="40" cy="40" r="30" fill="none" stroke="#c9a84c" stroke-width="10" stroke-dasharray="120 68" id="donut-growth"/>
-              <circle cx="40" cy="40" r="30" fill="none" stroke="#60a5fa" stroke-width="10" stroke-dasharray="48 140" stroke-dashoffset="-120" id="donut-enterprise"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#c9a84c" stroke-width="10" stroke-dasharray="120 68"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#60a5fa" stroke-width="10" stroke-dasharray="48 140" stroke-dashoffset="-120"/>
             </svg>
-            <div class="donut-center">
-              <div class="donut-val" id="donut-pct">—</div>
-              <div class="donut-sub">growth</div>
-            </div>
+            <div class="donut-center"><div class="donut-val" id="donut-pct">—</div><div class="donut-sub">growth</div></div>
           </div>
           <div class="plan-legend">
             <div class="legend-item"><div class="legend-dot" style="background:#c9a84c"></div>Growth</div>
@@ -416,39 +346,31 @@
         </div>
       </div>
     </div>
-
-    <div class="section-header">
-      <div class="section-h">Client Overview</div>
-    </div>
-    <table id="dashboard-table">
-      <thead><tr>
-        <th>Client</th><th>Plan</th><th>MRR</th><th>Satisfaction</th><th>Agents</th><th>Status</th>
-      </tr></thead>
-      <tbody id="dashboard-tbody"></tbody>
-    </table>
-
+    <div class="section-header"><div class="section-h">Client Overview</div></div>
+    <table><thead><tr><th>Client</th><th>Plan</th><th>MRR</th><th>Satisfaction</th><th>Agents</th><th>Status</th></tr></thead><tbody id="dashboard-tbody"></tbody></table>
     <div class="tracker-card">
-      <div class="tracker-row">
-        <div class="tracker-label">Path to $1M ARR</div>
-        <div class="tracker-val" id="tracker-mrr">$0 / $83,333 / mo</div>
-      </div>
+      <div class="tracker-row"><div class="tracker-label">Path to $1M ARR</div><div class="tracker-val" id="tracker-mrr">$0 / $83,333 / mo</div></div>
       <div class="progress-bar"><div class="progress-fill" id="tracker-bar" style="width:0%"></div></div>
-      <div class="progress-labels">
-        <span>$0</span>
-        <span id="tracker-need">Need <span id="tracker-clients-needed">70</span> more clients</span>
-        <span>$83,333</span>
-      </div>
+      <div class="progress-labels"><span>$0</span><span>Need <span id="tracker-clients-needed">70</span> more clients</span><span>$83,333</span></div>
     </div>
+  </div>
+
+  <!-- LEADS VIEW — waitlist signups appear here -->
+  <div class="view" id="view-leads">
+    <div class="section-header">
+      <div class="section-h">Waitlist & Inbound Leads</div>
+      <button class="btn-add" style="font-size:9px;padding:6px 14px;" onclick="clearLeads()">Clear All</button>
+    </div>
+    <div id="leads-empty" class="leads-empty">No leads yet. When someone joins your waitlist or submits the onboarding form, they appear here.</div>
+    <table id="leads-table" style="display:none;">
+      <thead><tr><th>Name / Email</th><th>Source</th><th>Business</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="leads-tbody"></tbody>
+    </table>
   </div>
 
   <!-- CLIENTS VIEW -->
   <div class="view" id="view-clients">
-    <table>
-      <thead><tr>
-        <th>Client</th><th>Plan</th><th>MRR</th><th>Conversations</th><th>Satisfaction</th><th>Since</th>
-      </tr></thead>
-      <tbody id="clients-tbody"></tbody>
-    </table>
+    <table><thead><tr><th>Client</th><th>Plan</th><th>MRR</th><th>Conversations</th><th>Satisfaction</th><th>Since</th></tr></thead><tbody id="clients-tbody"></tbody></table>
   </div>
 
   <!-- REVENUE VIEW -->
@@ -456,22 +378,10 @@
     <div class="rev-big" id="rev-mrr">$0</div>
     <div class="rev-sub">Monthly Recurring Revenue</div>
     <div class="rev-grid">
-      <div class="rev-cell">
-        <div class="rev-cell-label">Annual Run Rate</div>
-        <div class="rev-cell-val" id="rev-arr">$0</div>
-      </div>
-      <div class="rev-cell">
-        <div class="rev-cell-label">Gap to $1M ARR</div>
-        <div class="rev-cell-val" style="color:var(--muted)" id="rev-gap">$1,000,000</div>
-      </div>
-      <div class="rev-cell">
-        <div class="rev-cell-label">Avg Revenue / Client</div>
-        <div class="rev-cell-val" id="rev-avg">$0</div>
-      </div>
-      <div class="rev-cell">
-        <div class="rev-cell-label">Clients to $1M ARR</div>
-        <div class="rev-cell-val" id="rev-clients-needed">70</div>
-      </div>
+      <div class="rev-cell"><div class="rev-cell-label">Annual Run Rate</div><div class="rev-cell-val" id="rev-arr">$0</div></div>
+      <div class="rev-cell"><div class="rev-cell-label">Gap to $1M ARR</div><div class="rev-cell-val" style="color:var(--muted)" id="rev-gap">$1,000,000</div></div>
+      <div class="rev-cell"><div class="rev-cell-label">Avg Revenue / Client</div><div class="rev-cell-val" id="rev-avg">$0</div></div>
+      <div class="rev-cell"><div class="rev-cell-label">Clients to $1M ARR</div><div class="rev-cell-val" id="rev-clients-needed">70</div></div>
     </div>
     <div class="section-h" style="margin-bottom:12px;">Revenue Per Client</div>
     <div id="rev-breakdown"></div>
@@ -480,49 +390,15 @@
   <!-- AGENTS VIEW -->
   <div class="view" id="view-agents">
     <div class="agents-grid">
-      <div class="agent-card">
-        <div class="agent-card-icon">🤖</div>
-        <div class="agent-card-name">Support Agent</div>
-        <div class="agent-card-desc">24/7 customer support trained on client FAQs. Handles tickets, escalations, and multi-channel inquiries.</div>
-        <div class="agent-card-stat">
-          <div class="agent-card-num" id="support-deploys">0</div>
-          <div>
-            <div class="agent-card-unit">Active</div>
-            <div class="agent-card-deploy">Deployments</div>
-          </div>
-        </div>
-      </div>
-      <div class="agent-card">
-        <div class="agent-card-icon">📤</div>
-        <div class="agent-card-name">Sales Agent</div>
-        <div class="agent-card-desc">Automated outreach, lead scoring, and follow-up sequences. Finds and warms prospects autonomously.</div>
-        <div class="agent-card-stat">
-          <div class="agent-card-num" id="sales-deploys">0</div>
-          <div>
-            <div class="agent-card-unit">Active</div>
-            <div class="agent-card-deploy">Deployments</div>
-          </div>
-        </div>
-      </div>
-      <div class="agent-card">
-        <div class="agent-card-icon">⚙️</div>
-        <div class="agent-card-name">Ops Agent</div>
-        <div class="agent-card-desc">Internal workflow automation, reporting, scheduling, and task routing. The silent operator.</div>
-        <div class="agent-card-stat">
-          <div class="agent-card-num" id="ops-deploys">0</div>
-          <div>
-            <div class="agent-card-unit">Active</div>
-            <div class="agent-card-deploy">Deployments</div>
-          </div>
-        </div>
-      </div>
+      <div class="agent-card"><div class="agent-card-icon">🤖</div><div class="agent-card-name">Support Agent</div><div class="agent-card-desc">24/7 customer support trained on client FAQs. Handles tickets, escalations, and multi-channel inquiries.</div><div class="agent-card-stat"><div class="agent-card-num" id="support-deploys">0</div><div><div class="agent-card-unit">Active</div><div class="agent-card-deploy">Deployments</div></div></div></div>
+      <div class="agent-card"><div class="agent-card-icon">📤</div><div class="agent-card-name">Sales Agent</div><div class="agent-card-desc">Automated outreach, lead scoring, and follow-up sequences. Finds and warms prospects autonomously.</div><div class="agent-card-stat"><div class="agent-card-num" id="sales-deploys">0</div><div><div class="agent-card-unit">Active</div><div class="agent-card-deploy">Deployments</div></div></div></div>
+      <div class="agent-card"><div class="agent-card-icon">⚙️</div><div class="agent-card-name">Ops Agent</div><div class="agent-card-desc">Internal workflow automation, reporting, scheduling, and task routing. The silent operator.</div><div class="agent-card-stat"><div class="agent-card-num" id="ops-deploys">0</div><div><div class="agent-card-unit">Active</div><div class="agent-card-deploy">Deployments</div></div></div></div>
     </div>
   </div>
 
   <!-- SETTINGS VIEW -->
   <div class="view" id="view-settings" style="padding:0;overflow:hidden;">
     <div class="settings-grid">
-      <!-- Settings sidebar nav -->
       <div class="settings-sidebar">
         <div class="settings-nav-label">Agents</div>
         <div class="settings-nav-item active" onclick="showSettingsPanel('support',this)">🤖 Support Agent</div>
@@ -533,213 +409,74 @@
         <div class="settings-nav-item" onclick="showSettingsPanel('billing',this)">◎ Billing</div>
         <div class="settings-nav-item" onclick="showSettingsPanel('api',this)">◌ API & Integrations</div>
       </div>
-
-      <!-- SUPPORT AGENT SETTINGS -->
       <div class="settings-panel active" id="sp-support">
-        <div class="sp-title">Support Agent</div>
-        <div class="sp-sub">Global defaults · Applied to all new client deployments</div>
-        <div class="sp-section">
-          <div class="sp-section-title">Identity</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Agent Display Name</label><input class="sp-input" value="AXON Support" placeholder="AXON Support"></div>
-            <div class="sp-field"><label class="sp-label">Avatar Initials</label><input class="sp-input" value="AX" placeholder="AX" maxlength="3"></div>
-          </div>
-          <div class="sp-field"><label class="sp-label">Default Tone</label>
-            <select class="sp-select"><option>Professional & precise</option><option>Friendly & warm</option><option>Concise & direct</option><option>Luxury & refined</option></select>
-          </div>
+        <div class="sp-title">Support Agent</div><div class="sp-sub">Global defaults · All client deployments</div>
+        <div class="sp-section"><div class="sp-section-title">Identity</div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Agent Name</label><input class="sp-input" value="Vela Support"></div><div class="sp-field"><label class="sp-label">Initials</label><input class="sp-input" value="VL" maxlength="3"></div></div>
+          <div class="sp-field"><label class="sp-label">Default Tone</label><select class="sp-select"><option>Professional & precise</option><option>Friendly & warm</option><option>Concise & direct</option><option>Luxury & refined</option></select></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Behaviour</div>
-          <div class="sp-field"><label class="sp-label">System Prompt (base)</label>
-            <textarea class="sp-textarea" style="min-height:100px;">You are AXON Support, an AI customer support agent. Be helpful, concise, and professional. If you can't answer, offer to escalate to a human agent. Keep responses under 3 sentences when possible.</textarea>
-          </div>
-          <div class="sp-field"><label class="sp-label">Max Response Length</label>
-            <select class="sp-select"><option>Short (1–2 sentences)</option><option selected>Standard (2–3 sentences)</option><option>Detailed (full paragraphs)</option></select>
-          </div>
+        <div class="sp-section"><div class="sp-section-title">Behaviour</div>
+          <div class="sp-field"><label class="sp-label">Base System Prompt</label><textarea class="sp-textarea" style="min-height:100px;">You are Vela Support, an AI customer support agent. Be helpful, concise, and professional. If you can't answer, offer to escalate to a human agent. Keep responses under 3 sentences.</textarea></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Features</div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Human escalation</div><div class="sp-toggle-sub">Offer live handoff when agent can't resolve</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Conversation memory</div><div class="sp-toggle-sub">Remember context within a session</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Weekly performance report</div><div class="sp-toggle-sub">Auto-send digest every Monday</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">After-hours mode</div><div class="sp-toggle-sub">Different tone outside business hours</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="sp-section"><div class="sp-section-title">Features</div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Human escalation</div><div class="sp-toggle-sub">Offer live handoff when unresolved</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Weekly report</div><div class="sp-toggle-sub">Auto-send digest every Monday</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
         </div>
-        <div class="sp-save-row">
-          <div class="sp-save-confirm" id="support-saved">✓ Saved</div>
-          <button class="sp-reset-btn">Reset to defaults</button>
-          <button class="sp-save-btn" onclick="saveSettings('support-saved')">Save Changes</button>
-        </div>
+        <div class="sp-save-row"><div class="sp-save-confirm" id="support-saved">✓ Saved</div><button class="sp-reset-btn">Reset</button><button class="sp-save-btn" onclick="saveSettings('support-saved')">Save Changes</button></div>
       </div>
-
-      <!-- SALES AGENT SETTINGS -->
       <div class="settings-panel" id="sp-sales">
-        <div class="sp-title">Sales Agent</div>
-        <div class="sp-sub">Global defaults · Applied to all new client deployments</div>
-        <div class="sp-section">
-          <div class="sp-section-title">Identity</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Agent Display Name</label><input class="sp-input" value="AXON Sales" placeholder="AXON Sales"></div>
-            <div class="sp-field"><label class="sp-label">Sender Name</label><input class="sp-input" value="Alex from AXON" placeholder="Alex from AXON"></div>
-          </div>
-          <div class="sp-field"><label class="sp-label">Default Outreach Tone</label>
-            <select class="sp-select"><option>Professional</option><option selected>Casual</option><option>Bold</option></select>
-          </div>
+        <div class="sp-title">Sales Agent</div><div class="sp-sub">Global defaults · All client deployments</div>
+        <div class="sp-section"><div class="sp-section-title">Identity</div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Agent Name</label><input class="sp-input" value="Vela Sales"></div><div class="sp-field"><label class="sp-label">Sender Name</label><input class="sp-input" value="Alex from Vela"></div></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Sequence Defaults</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Follow-up Delay (days)</label><input class="sp-input" type="number" value="4"></div>
-            <div class="sp-field"><label class="sp-label">Max Steps in Sequence</label><input class="sp-input" type="number" value="4"></div>
-          </div>
-          <div class="sp-field"><label class="sp-label">Default Opening Angle</label>
-            <select class="sp-select"><option selected>Pain Point</option><option>Social Proof</option><option>ROI / Outcome</option></select>
-          </div>
-          <div class="sp-field"><label class="sp-label">Value Proposition (used in all emails)</label>
-            <textarea class="sp-textarea">AXON deploys AI agents for support, sales, and ops — live in 48 hours. We help businesses automate customer interactions and save 20+ hours per week.</textarea>
-          </div>
+        <div class="sp-section"><div class="sp-section-title">Sequence Defaults</div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Follow-up Delay (days)</label><input class="sp-input" type="number" value="4"></div><div class="sp-field"><label class="sp-label">Max Steps</label><input class="sp-input" type="number" value="4"></div></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Features</div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Auto lead scoring</div><div class="sp-toggle-sub">Score leads on import using AI analysis</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Reply detection</div><div class="sp-toggle-sub">Pause sequence when lead replies</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Meeting auto-book</div><div class="sp-toggle-sub">Trigger Calendly link on positive reply</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">CRM sync</div><div class="sp-toggle-sub">Push lead updates to connected CRM</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-        </div>
-        <div class="sp-save-row">
-          <div class="sp-save-confirm" id="sales-saved">✓ Saved</div>
-          <button class="sp-reset-btn">Reset to defaults</button>
-          <button class="sp-save-btn" onclick="saveSettings('sales-saved')">Save Changes</button>
-        </div>
+        <div class="sp-save-row"><div class="sp-save-confirm" id="sales-saved">✓ Saved</div><button class="sp-reset-btn">Reset</button><button class="sp-save-btn" onclick="saveSettings('sales-saved')">Save Changes</button></div>
       </div>
-
-      <!-- OPS AGENT SETTINGS -->
       <div class="settings-panel" id="sp-ops">
-        <div class="sp-title">Ops Agent</div>
-        <div class="sp-sub">Global defaults · Applied to all new client deployments</div>
-        <div class="sp-section">
-          <div class="sp-section-title">Identity</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Agent Display Name</label><input class="sp-input" value="AXON Ops" placeholder="AXON Ops"></div>
-            <div class="sp-field"><label class="sp-label">Report Sender Name</label><input class="sp-input" value="AXON Ops Digest" placeholder="AXON Ops Digest"></div>
-          </div>
+        <div class="sp-title">Ops Agent</div><div class="sp-sub">Global defaults · All client deployments</div>
+        <div class="sp-section"><div class="sp-section-title">Reporting</div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Digest Frequency</label><select class="sp-select"><option>Daily</option><option selected>Weekly</option><option>Monthly</option></select></div><div class="sp-field"><label class="sp-label">Send Time</label><input class="sp-input" type="time" value="08:00"></div></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Reporting</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Digest Frequency</label><select class="sp-select"><option>Daily</option><option selected>Weekly</option><option>Monthly</option></select></div>
-            <div class="sp-field"><label class="sp-label">Digest Send Time</label><input class="sp-input" type="time" value="08:00"></div>
-          </div>
-          <div class="sp-field"><label class="sp-label">Default Report Recipients (one per line)</label>
-            <textarea class="sp-textarea" placeholder="ceo@client.com&#10;ops@client.com"></textarea>
-          </div>
-        </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Automations</div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Auto task routing</div><div class="sp-toggle-sub">Assign overdue tasks automatically</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Conflict detection</div><div class="sp-toggle-sub">Flag scheduling conflicts before they happen</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Slack digest</div><div class="sp-toggle-sub">Post weekly digest to connected Slack workspace</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Google Calendar sync</div><div class="sp-toggle-sub">Sync scheduled tasks with client calendars</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-        </div>
-        <div class="sp-save-row">
-          <div class="sp-save-confirm" id="ops-saved">✓ Saved</div>
-          <button class="sp-reset-btn">Reset to defaults</button>
-          <button class="sp-save-btn" onclick="saveSettings('ops-saved')">Save Changes</button>
-        </div>
+        <div class="sp-save-row"><div class="sp-save-confirm" id="ops-saved">✓ Saved</div><button class="sp-reset-btn">Reset</button><button class="sp-save-btn" onclick="saveSettings('ops-saved')">Save Changes</button></div>
       </div>
-
-      <!-- OPERATOR PROFILE -->
       <div class="settings-panel" id="sp-operator">
-        <div class="sp-title">Operator Profile</div>
-        <div class="sp-sub">Your account · AXON operator</div>
-        <div class="sp-section">
-          <div class="sp-section-title">Identity</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Full Name</label><input class="sp-input" placeholder="Your name"></div>
-            <div class="sp-field"><label class="sp-label">Business Name</label><input class="sp-input" placeholder="Your agency"></div>
-          </div>
+        <div class="sp-title">Operator Profile</div><div class="sp-sub">Your account</div>
+        <div class="sp-section"><div class="sp-section-title">Identity</div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Your Name</label><input class="sp-input" id="op-name" placeholder="Your name"></div><div class="sp-field"><label class="sp-label">Business Name</label><input class="sp-input" placeholder="Your agency"></div></div>
           <div class="sp-field"><label class="sp-label">Email</label><input class="sp-input" type="email" placeholder="you@youragency.com"></div>
-          <div class="sp-field"><label class="sp-label">Timezone</label>
-            <select class="sp-select">
-              <option>UTC-8 Pacific Time</option><option>UTC-5 Eastern Time</option>
-              <option selected>UTC+0 GMT</option><option>UTC+1 CET</option><option>UTC+5:30 IST</option>
-            </select>
-          </div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Branding (White-label)</div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Agency Name (shown to clients)</label><input class="sp-input" placeholder="Your Agency AI"></div>
-            <div class="sp-field"><label class="sp-label">Support Email</label><input class="sp-input" placeholder="support@youragency.com"></div>
-          </div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">White-label mode</div><div class="sp-toggle-sub">Hide AXON branding from client-facing interfaces</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="sp-section"><div class="sp-section-title">Change Password</div>
+          <div class="sp-field"><label class="sp-label">New Password</label><input class="sp-input" type="password" id="new-password" placeholder="Enter new password"></div>
+          <div class="sp-field"><label class="sp-label">Confirm Password</label><input class="sp-input" type="password" id="confirm-password" placeholder="Confirm new password"></div>
+          <button class="sp-save-btn" style="margin-top:4px;" onclick="changePassword()">Update Password</button>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-top:8px;display:none;" id="pw-changed">✓ Password updated</div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Notifications</div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">New client alert</div><div class="sp-toggle-sub">Email when a new client is added</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Low satisfaction alert</div><div class="sp-toggle-sub">Alert when client satisfaction drops below 80%</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Monthly revenue report</div><div class="sp-toggle-sub">Auto-send MRR summary on the 1st</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="sp-section"><div class="sp-section-title">White-label</div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Hide Vela branding</div><div class="sp-toggle-sub">Remove Vela name from client-facing interfaces</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
         </div>
-        <div class="sp-save-row">
-          <div class="sp-save-confirm" id="operator-saved">✓ Saved</div>
-          <button class="sp-save-btn" onclick="saveSettings('operator-saved')">Save Changes</button>
-        </div>
+        <div class="sp-save-row"><div class="sp-save-confirm" id="operator-saved">✓ Saved</div><button class="sp-save-btn" onclick="saveSettings('operator-saved')">Save Changes</button></div>
       </div>
-
-      <!-- BILLING -->
       <div class="settings-panel" id="sp-billing">
-        <div class="sp-title">Billing</div>
-        <div class="sp-sub">Your AXON operator plan</div>
-        <div class="sp-section">
-          <div class="sp-section-title">Current Plan</div>
-          <div style="background:var(--surface2);border:1px solid rgba(201,168,76,0.3);padding:20px 22px;margin-bottom:16px;position:relative;">
-            <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--gold),transparent);"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;">Operator Pro</div>
-              <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);">ACTIVE</div>
-            </div>
-            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">$299/month · Unlimited clients · All 3 agents · Priority support</div>
-          </div>
-          <div class="sp-row-2">
-            <div class="sp-field"><label class="sp-label">Next Billing Date</label><input class="sp-input" value="May 1, 2025" readonly></div>
-            <div class="sp-field"><label class="sp-label">Payment Method</label><input class="sp-input" value="•••• •••• •••• 4821" readonly></div>
-          </div>
-        </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Usage This Month</div>
-          <div class="sp-row-2">
-            <div class="detail-stat"><div class="detail-stat-label">Active Clients</div><div class="detail-stat-val" id="billing-clients">—</div></div>
-            <div class="detail-stat"><div class="detail-stat-label">Total MRR Managed</div><div class="detail-stat-val" id="billing-mrr">—</div></div>
-          </div>
-        </div>
-        <div class="sp-danger-zone">
-          <div class="sp-danger-title">Danger Zone</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Cancelling will immediately suspend all deployed agents for your clients.</div>
-          <button class="sp-danger-btn">Cancel Subscription</button>
+        <div class="sp-title">Billing</div><div class="sp-sub">Your Vela operator plan</div>
+        <div class="sp-section"><div class="sp-section-title">Current Plan</div>
+          <div style="background:var(--surface2);border:1px solid rgba(201,168,76,0.3);padding:20px 22px;margin-bottom:16px;position:relative;"><div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--gold),transparent);"></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;">Operator Pro</div><div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);">ACTIVE</div></div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">$299/month · Unlimited clients · All 3 agents</div></div>
+          <div class="sp-row-2"><div class="sp-field"><label class="sp-label">Active Clients</label><input class="sp-input" id="billing-clients" value="0" readonly></div><div class="sp-field"><label class="sp-label">MRR Managed</label><input class="sp-input" id="billing-mrr" value="$0" readonly></div></div>
         </div>
       </div>
-
-      <!-- API & INTEGRATIONS -->
       <div class="settings-panel" id="sp-api">
-        <div class="sp-title">API & Integrations</div>
-        <div class="sp-sub">Connect external tools and manage your API access</div>
-        <div class="sp-section">
-          <div class="sp-section-title">API Key</div>
-          <div class="sp-field"><label class="sp-label">Your AXON API Key <span class="sp-badge">LIVE</span></label>
-            <input class="sp-input" value="axon_live_••••••••••••••••••••••••" readonly>
-          </div>
-          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:-8px;margin-bottom:16px;">Keep this secret. Use it to embed agents on any platform.</div>
+        <div class="sp-title">API & Integrations</div><div class="sp-sub">Connect your tools</div>
+        <div class="sp-section"><div class="sp-section-title">API Key</div>
+          <div class="sp-field"><label class="sp-label">Your Vela API Key</label><input class="sp-input" value="vela_live_••••••••••••••••••••" readonly></div>
         </div>
-        <div class="sp-section">
-          <div class="sp-section-title">Connected Integrations</div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Anthropic Claude</div><div class="sp-toggle-sub">AI engine powering all AXON agents</div></div><div class="sp-toggle on" onclick="return false;"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Stripe</div><div class="sp-toggle-sub">Payment processing and subscriptions</div></div><div class="sp-toggle on" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Slack</div><div class="sp-toggle-sub">Send ops digests and alerts to Slack</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Google Workspace</div><div class="sp-toggle-sub">Calendar sync and Gmail for ops agent</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">HubSpot CRM</div><div class="sp-toggle-sub">Sync leads from sales agent</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
-          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Zapier</div><div class="sp-toggle-sub">Connect any tool via Zap triggers</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
+        <div class="sp-section"><div class="sp-section-title">Integrations</div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Claude AI</div><div class="sp-toggle-sub">Powers all Vela agents</div></div><div class="sp-toggle on"></div></div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Flutterwave</div><div class="sp-toggle-sub">Payment processing</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Slack</div><div class="sp-toggle-sub">Ops digests and alerts</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="sp-toggle-row"><div><div class="sp-toggle-label">Google Workspace</div><div class="sp-toggle-sub">Calendar + Gmail for ops agent</div></div><div class="sp-toggle" onclick="this.classList.toggle('on')"></div></div>
         </div>
       </div>
-
     </div>
   </div>
 </main>
@@ -747,26 +484,16 @@
 <!-- CLIENT DETAIL MODAL -->
 <div class="modal-overlay" id="client-modal">
   <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-name" id="modal-client-name">Client</div>
-      <button class="modal-close" onclick="closeModal('client-modal')">✕ Close</button>
-    </div>
+    <div class="modal-header"><div class="modal-name" id="modal-client-name">Client</div><button class="modal-close" onclick="closeModal('client-modal')">✕ Close</button></div>
     <div class="modal-tabs">
       <div class="modal-tab active" onclick="showModalTab('overview',this)">Overview</div>
       <div class="modal-tab" onclick="showModalTab('chatlogs',this)">Chat Logs</div>
       <div class="modal-tab" onclick="showModalTab('settings',this)">Settings</div>
     </div>
     <div class="modal-tab-content">
-      <div class="modal-tab-panel active" id="mtab-overview">
-        <div class="detail-grid" id="modal-stats"></div>
-        <div id="modal-agents-row"></div>
-      </div>
-      <div class="modal-tab-panel" id="mtab-chatlogs">
-        <div class="chat-log" id="modal-chatlogs"></div>
-      </div>
-      <div class="modal-tab-panel" id="mtab-settings">
-        <div style="color:var(--muted);font-size:13px;line-height:1.7;">Agent configuration and webhook settings would appear here. Deploy new agents, update FAQs, or change tone preferences for this client.</div>
-      </div>
+      <div class="modal-tab-panel active" id="mtab-overview"><div class="detail-grid" id="modal-stats"></div><div id="modal-agents-row"></div></div>
+      <div class="modal-tab-panel" id="mtab-chatlogs"><div class="chat-log" id="modal-chatlogs"></div></div>
+      <div class="modal-tab-panel" id="mtab-settings"><div style="color:var(--muted);font-size:13px;line-height:1.7;">Agent configuration, webhooks, and tone settings for this client.</div></div>
     </div>
   </div>
 </div>
@@ -774,111 +501,201 @@
 <!-- NEW CLIENT MODAL -->
 <div class="modal-overlay" id="nc-modal">
   <div class="modal-box" style="max-width:520px">
-    <div class="modal-header">
-      <div class="modal-name">New Client</div>
-      <button class="modal-close" onclick="closeModal('nc-modal')">✕ Close</button>
-    </div>
+    <div class="modal-header"><div class="modal-name">New Client</div><button class="modal-close" onclick="closeModal('nc-modal')">✕ Close</button></div>
     <div class="nc-form">
-      <div class="nc-row"><label class="nc-label">Business Name</label><input class="nc-input" id="nc-name" placeholder="Meridian Co." type="text"></div>
-      <div class="nc-row"><label class="nc-label">Industry</label><input class="nc-input" id="nc-industry" placeholder="Logistics" type="text"></div>
-      <div class="nc-row">
-        <label class="nc-label">Plan</label>
-        <select class="nc-select" id="nc-plan">
-          <option value="Starter">Starter — $499/mo</option>
-          <option value="Growth">Growth — $999/mo</option>
-          <option value="Enterprise">Enterprise — Custom</option>
-        </select>
-      </div>
-      <div class="nc-row">
-        <label class="nc-label">Agents</label>
-        <select class="nc-select" id="nc-agents">
-          <option value="Support">Support only</option>
-          <option value="Support, Sales">Support + Sales</option>
-          <option value="Support, Sales, Ops">All 3 Agents</option>
-        </select>
-      </div>
+      <div class="nc-row"><label class="nc-label">Business Name</label><input class="nc-input" id="nc-name" placeholder="Meridian Co."></div>
+      <div class="nc-row"><label class="nc-label">Industry</label><input class="nc-input" id="nc-industry" placeholder="Logistics"></div>
+      <div class="nc-row"><label class="nc-label">Contact Email</label><input class="nc-input" id="nc-email" placeholder="client@business.com" type="email"></div>
+      <div class="nc-row"><label class="nc-label">Plan</label><select class="nc-select" id="nc-plan"><option value="Starter">Starter — $499/mo</option><option value="Growth">Growth — $999/mo</option><option value="Enterprise">Enterprise — Custom</option></select></div>
+      <div class="nc-row"><label class="nc-label">Agents</label><select class="nc-select" id="nc-agents"><option value="Support">Support only</option><option value="Support, Sales">Support + Sales</option><option value="Support, Sales, Ops">All 3 Agents</option></select></div>
     </div>
+    <div class="nc-footer"><button class="btn-cancel" onclick="closeModal('nc-modal')">Cancel</button><button class="btn-confirm" onclick="addClient()">Add Client →</button></div>
+  </div>
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header"><div class="modal-name" id="lead-modal-name">Lead</div><button class="modal-close" onclick="closeModal('lead-modal')">✕ Close</button></div>
+    <div class="modal-tab-content" id="lead-modal-body"></div>
     <div class="nc-footer">
-      <button class="btn-cancel" onclick="closeModal('nc-modal')">Cancel</button>
-      <button class="btn-confirm" onclick="addClient()">Add Client →</button>
+      <button class="btn-cancel" onclick="closeModal('lead-modal')">Close</button>
+      <button class="btn-confirm" onclick="convertLead()">Convert to Client →</button>
     </div>
   </div>
 </div>
 
 <script>
-  // Data
-  let clients = [
-    { id:1, name:'Vantage Retail', industry:'E-Commerce', plan:'Growth', mrr:999, conversations:3240, sat:94, agents:'Support, Sales', since:'Jan 2025', logs:['User asked about order #4821 — resolved in 1 turn','Return request processed automatically','Escalated complex complaint to human — resolved'] },
-    { id:2, name:'Crest Properties', industry:'Real Estate', plan:'Growth', mrr:999, conversations:1870, sat:91, agents:'Support, Sales', since:'Feb 2025', logs:['Viewing booked for 3 Maple Lane','FAQ about mortgage rates — answered','Lead qualified and passed to sales pipeline'] },
-    { id:3, name:'Apex Clinic', industry:'Healthcare', plan:'Starter', mrr:499, conversations:980, sat:88, agents:'Support', since:'Feb 2025', logs:['Appointment booked for Dr. Chen','Insurance query resolved','Out-of-hours inquiry handled automatically'] },
-    { id:4, name:'Nobu Group', industry:'Hospitality', plan:'Enterprise', mrr:2400, conversations:5600, sat:97, agents:'Support, Sales, Ops', since:'Mar 2025', logs:['1,200 reservation confirmations sent this month','Weekly ops digest delivered to 8 stakeholders','Sales agent booked 3 corporate event inquiries'] },
-  ];
+  // ── PASSWORD ────────────────────────────────────────────────────
+  // Default password is: vela2025
+  // Change it in Settings → Operator Profile
+  let DASHBOARD_PASSWORD = localStorage.getItem('vela_password') || 'vela2025';
 
-  function calcMRR() { return clients.reduce((s,c) => s + c.mrr, 0); }
+  function checkPassword() {
+    const val = document.getElementById('gate-input').value;
+    if (val === DASHBOARD_PASSWORD) {
+      document.getElementById('gate').style.display = 'none';
+      updateAll();
+    } else {
+      document.getElementById('gate-error').style.display = 'block';
+      document.getElementById('gate-input').style.borderColor = 'var(--red)';
+      document.getElementById('gate-input').value = '';
+    }
+  }
+
+  function logout() {
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-error').style.display = 'none';
+    document.getElementById('gate-input').style.borderColor = '';
+  }
+
+  function changePassword() {
+    const np = document.getElementById('new-password').value;
+    const cp = document.getElementById('confirm-password').value;
+    if (!np) return;
+    if (np !== cp) { alert('Passwords do not match.'); return; }
+    DASHBOARD_PASSWORD = np;
+    localStorage.setItem('vela_password', np);
+    document.getElementById('pw-changed').style.display = 'block';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+    setTimeout(() => document.getElementById('pw-changed').style.display = 'none', 3000);
+  }
+
+  // ── DATA ────────────────────────────────────────────────────────
+  // Clients stored in localStorage so they persist
+  let clients = JSON.parse(localStorage.getItem('vela_clients') || '[]');
+  let leads = JSON.parse(localStorage.getItem('vela_leads') || '[]');
+  let activeLead = null;
+
+  // If no clients yet, start empty (no fake demo data)
+  function saveData() {
+    localStorage.setItem('vela_clients', JSON.stringify(clients));
+    localStorage.setItem('vela_leads', JSON.stringify(leads));
+  }
+
+  // ── LEADS — receive from landing page waitlist & onboarding ─────
+  // Landing page posts: { type:'waitlist', email, date }
+  // Onboarding posts: { type:'onboard', name, email, business, industry, agents, tone, date }
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.velaLead) {
+      leads.unshift({ id: Date.now(), ...e.data.velaLead, status: 'new' });
+      saveData();
+      updateAll();
+    }
+  });
+
+  // Also check URL params — onboarding page can redirect with data
+  (function checkUrlLead() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('lead')) {
+      try {
+        const lead = JSON.parse(atob(params.get('lead')));
+        leads.unshift({ id: Date.now(), ...lead, status: 'new' });
+        saveData();
+        window.history.replaceState({}, '', window.location.pathname);
+      } catch(e) {}
+    }
+  })();
+
+  // ── RENDER ──────────────────────────────────────────────────────
+  function calcMRR() { return clients.reduce((s,c) => s + (c.mrr||0), 0); }
   function calcAvgSat() {
-    if (!clients.length) return '—';
-    return Math.round(clients.reduce((s,c) => s + c.sat, 0) / clients.length) + '%';
+    const active = clients.filter(c => c.sat);
+    return active.length ? Math.round(active.reduce((s,c) => s + c.sat, 0) / active.length) + '%' : '—';
   }
 
   function updateAll() {
     const mrr = calcMRR();
+    const newLeads = leads.filter(l => l.status === 'new').length;
+
     // KPIs
     document.getElementById('kpi-mrr').textContent = '$' + mrr.toLocaleString();
     document.getElementById('kpi-clients').textContent = clients.length;
+    document.getElementById('kpi-leads').textContent = leads.length;
     document.getElementById('kpi-sat').textContent = calcAvgSat();
     const pct = Math.min(100, Math.round(mrr / 83333 * 100));
     document.getElementById('kpi-mrr-delta').textContent = `↑ ${pct}% of $1M ARR target`;
-    // tracker
+    document.getElementById('kpi-leads-delta').textContent = newLeads > 0 ? `${newLeads} new — follow up` : 'all followed up';
+
+    // Leads badge
+    document.getElementById('leads-badge').textContent = newLeads;
+    document.getElementById('leads-badge').style.display = newLeads > 0 ? 'inline' : 'none';
+
+    // Tracker
     document.getElementById('tracker-mrr').textContent = '$' + mrr.toLocaleString() + ' / $83,333 / mo';
     document.getElementById('tracker-bar').style.width = pct + '%';
     const need = Math.max(0, Math.ceil((83333 - mrr) / 1200));
     document.getElementById('tracker-clients-needed').textContent = need;
-    // donut
-    document.getElementById('donut-pct').textContent = Math.round(clients.filter(c=>c.plan==='Growth').length / Math.max(1,clients.length) * 100) + '%';
-    // charts
+
+    // Donut
+    document.getElementById('donut-pct').textContent = clients.length ? Math.round(clients.filter(c=>c.plan==='Growth').length / clients.length * 100) + '%' : '—';
+
     renderMRRChart(mrr);
     renderDashboardTable();
     renderClientsTable();
+    renderLeadsTable();
     renderRevenueView(mrr);
     renderAgentsView();
   }
 
   function renderMRRChart(currentMRR) {
     const base = Math.max(1, currentMRR);
-    const history = [Math.round(base*0.25), Math.round(base*0.42), Math.round(base*0.58), Math.round(base*0.72), Math.round(base*0.88), base];
+    const history = [.25,.42,.58,.72,.88,1].map(f => Math.round(base * f));
     const months = ['Nov','Dec','Jan','Feb','Mar','Apr'];
     const max = Math.max(...history);
-    const chart = document.getElementById('mrr-chart');
-    chart.innerHTML = history.map((v,i) => `
+    document.getElementById('mrr-chart').innerHTML = history.map((v,i) => `
       <div class="bar-col">
         <div class="bar" style="height:${Math.round(v/max*90)}px" title="$${v.toLocaleString()}"></div>
         <div class="bar-label">${months[i]}</div>
       </div>`).join('');
   }
 
-  function planBadgeClass(p) { return p === 'Growth' ? 'growth' : p === 'Enterprise' ? 'enterprise' : ''; }
+  function planBadgeClass(p) { return p==='Growth'?'growth':p==='Enterprise'?'enterprise':''; }
 
   function renderDashboardTable() {
-    document.getElementById('dashboard-tbody').innerHTML = clients.map(c => `
+    const tbody = document.getElementById('dashboard-tbody');
+    if (!clients.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dim);font-family:'DM Mono',monospace;font-size:10px;padding:32px;">No clients yet — add your first client above</td></tr>`; return; }
+    tbody.innerHTML = clients.map(c => `
       <tr onclick="openClientModal(${c.id})">
-        <td><div class="client-name">${c.name}</div><div style="font-size:11px;color:var(--dim);margin-top:2px;font-family:'DM Mono',monospace;">${c.industry}</div></td>
+        <td><div class="client-name">${c.name}</div><div style="font-size:11px;color:var(--dim);margin-top:2px;font-family:'DM Mono',monospace;">${c.industry||''}</div></td>
         <td><span class="plan-badge ${planBadgeClass(c.plan)}">${c.plan}</span></td>
-        <td class="revenue-cell">$${c.mrr.toLocaleString()}</td>
-        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat}%"></div></div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">${c.sat}%</div></td>
-        <td class="agents-cell">${c.agents}</td>
-        <td><div class="status-pill" style="border:none;padding:0;"><div class="pulse"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-left:6px;">Live</span></div></td>
+        <td class="revenue-cell">$${(c.mrr||0).toLocaleString()}</td>
+        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat||90}%"></div></div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">${c.sat||90}%</div></td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">${c.agents||'Support'}</td>
+        <td><div style="display:flex;align-items:center;gap:6px;"><div class="pulse"></div><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);">Live</span></div></td>
       </tr>`).join('');
   }
 
   function renderClientsTable() {
-    document.getElementById('clients-tbody').innerHTML = clients.map(c => `
+    const tbody = document.getElementById('clients-tbody');
+    if (!clients.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--dim);font-family:'DM Mono',monospace;font-size:10px;padding:32px;">No clients yet</td></tr>`; return; }
+    tbody.innerHTML = clients.map(c => `
       <tr onclick="openClientModal(${c.id})">
         <td><div class="client-name">${c.name}</div></td>
         <td><span class="plan-badge ${planBadgeClass(c.plan)}">${c.plan}</span></td>
-        <td class="revenue-cell">$${c.mrr.toLocaleString()}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${c.conversations.toLocaleString()}</td>
-        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat}%"></div></div></td>
-        <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);">${c.since}</td>
+        <td class="revenue-cell">$${(c.mrr||0).toLocaleString()}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${(c.conversations||0).toLocaleString()}</td>
+        <td><div class="sat-bar"><div class="sat-fill" style="width:${c.sat||90}%"></div></div></td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);">${c.since||'—'}</td>
+      </tr>`).join('');
+  }
+
+  function renderLeadsTable() {
+    const empty = document.getElementById('leads-empty');
+    const table = document.getElementById('leads-table');
+    if (!leads.length) { empty.style.display='block'; table.style.display='none'; return; }
+    empty.style.display = 'none';
+    table.style.display = 'table';
+    document.getElementById('leads-tbody').innerHTML = leads.map(l => `
+      <tr onclick="openLeadModal(${l.id})">
+        <td><div class="client-name">${l.name||l.email||'—'}</div><div style="font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;margin-top:2px;">${l.email||''}</div></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">${l.type||'waitlist'}</span></td>
+        <td style="font-size:12px;color:var(--muted);">${l.business||'—'}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);">${l.date ? new Date(l.date).toLocaleDateString() : '—'}</td>
+        <td><span class="lead-row-status ${l.status||'new'}">${l.status||'new'}</span></td>
+        <td><button class="lead-action-btn" onclick="event.stopPropagation();markContacted(${l.id})">Mark Contacted</button></td>
       </tr>`).join('');
   }
 
@@ -887,29 +704,22 @@
     const arr = mrr * 12;
     document.getElementById('rev-arr').textContent = '$' + arr.toLocaleString();
     document.getElementById('rev-gap').textContent = '$' + Math.max(0, 1000000 - arr).toLocaleString();
-    document.getElementById('rev-avg').textContent = clients.length ? '$' + Math.round(mrr / clients.length).toLocaleString() : '$0';
-    const need = Math.max(0, Math.ceil((83333 - mrr) / 1200));
-    document.getElementById('rev-clients-needed').textContent = need;
-    const maxMRR = Math.max(...clients.map(c=>c.mrr), 1);
-    document.getElementById('rev-breakdown').innerHTML = clients.map(c => `
-      <div class="client-rev-row">
-        <div class="client-rev-name">${c.name}</div>
-        <div class="rev-bar-bg"><div class="rev-bar-fill" style="width:${Math.round(c.mrr/maxMRR*100)}%"></div></div>
-        <div class="client-rev-amount">$${c.mrr.toLocaleString()}</div>
-      </div>`).join('');
+    document.getElementById('rev-avg').textContent = clients.length ? '$' + Math.round(mrr/clients.length).toLocaleString() : '$0';
+    document.getElementById('rev-clients-needed').textContent = Math.max(0, Math.ceil((83333-mrr)/1200));
+    const maxMRR = Math.max(...clients.map(c=>c.mrr||0), 1);
+    document.getElementById('rev-breakdown').innerHTML = clients.length
+      ? clients.map(c => `<div class="client-rev-row"><div class="client-rev-name">${c.name}</div><div class="rev-bar-bg"><div class="rev-bar-fill" style="width:${Math.round((c.mrr||0)/maxMRR*100)}%"></div></div><div class="client-rev-amount">$${(c.mrr||0).toLocaleString()}</div></div>`).join('')
+      : '<div style="color:var(--dim);font-family:\'DM Mono\',monospace;font-size:10px;padding:20px 0;">No clients yet</div>';
   }
 
   function renderAgentsView() {
-    const support = clients.filter(c => c.agents.includes('Support')).length;
-    const sales = clients.filter(c => c.agents.includes('Sales')).length;
-    const ops = clients.filter(c => c.agents.includes('Ops')).length;
-    document.getElementById('support-deploys').textContent = support;
-    document.getElementById('sales-deploys').textContent = sales;
-    document.getElementById('ops-deploys').textContent = ops;
+    document.getElementById('support-deploys').textContent = clients.filter(c=>c.agents&&c.agents.includes('Support')).length;
+    document.getElementById('sales-deploys').textContent = clients.filter(c=>c.agents&&c.agents.includes('Sales')).length;
+    document.getElementById('ops-deploys').textContent = clients.filter(c=>c.agents&&c.agents.includes('Ops')).length;
   }
 
-  // VIEWS
-  const viewTitles = { dashboard:'Dashboard', clients:'Clients', revenue:'Revenue', agents:'Agents', settings:'Settings' };
+  // ── VIEWS ───────────────────────────────────────────────────────
+  const viewTitles = { dashboard:'Dashboard', leads:'Leads', clients:'Clients', revenue:'Revenue', agents:'Agents', settings:'Settings' };
   function showView(id, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -933,32 +743,82 @@
   }
 
   function updateBillingView() {
-    document.getElementById('billing-clients').textContent = clients.length;
-    document.getElementById('billing-mrr').textContent = '$' + calcMRR().toLocaleString();
+    document.getElementById('billing-clients').value = clients.length;
+    document.getElementById('billing-mrr').value = '$' + calcMRR().toLocaleString();
   }
 
-  // MODALS
+  // ── MODALS ───────────────────────────────────────────────────────
   function openClientModal(id) {
     const c = clients.find(x => x.id === id);
     if (!c) return;
     document.getElementById('modal-client-name').textContent = c.name;
     document.getElementById('modal-stats').innerHTML = `
-      <div class="detail-stat"><div class="detail-stat-label">MRR</div><div class="detail-stat-val">$${c.mrr.toLocaleString()}</div></div>
-      <div class="detail-stat"><div class="detail-stat-label">Satisfaction</div><div class="detail-stat-val">${c.sat}%</div></div>
-      <div class="detail-stat"><div class="detail-stat-label">Conversations</div><div class="detail-stat-val">${c.conversations.toLocaleString()}</div></div>`;
-    document.getElementById('modal-agents-row').innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Active Agents</div><div style="font-size:13px;color:var(--white);">${c.agents}</div>`;
-    document.getElementById('modal-chatlogs').innerHTML = c.logs.map(l => `
-      <div class="log-item"><div class="log-meta">Recent interaction</div><div class="log-text">${l}</div></div>`).join('');
+      <div class="detail-stat"><div class="detail-stat-label">MRR</div><div class="detail-stat-val">$${(c.mrr||0).toLocaleString()}</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Satisfaction</div><div class="detail-stat-val">${c.sat||90}%</div></div>
+      <div class="detail-stat"><div class="detail-stat-label">Plan</div><div class="detail-stat-val" style="font-size:18px;">${c.plan}</div></div>`;
+    document.getElementById('modal-agents-row').innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:16px;">Active Agents</div><div style="font-size:13px;color:var(--white);">${c.agents||'Support'}</div><div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);">Contact: ${c.email||'—'}</div>`;
+    document.getElementById('modal-chatlogs').innerHTML = (c.logs||['Agent deployed and active']).map(l => `<div class="log-item"><div class="log-meta">Activity</div><div class="log-text">${l}</div></div>`).join('');
     document.getElementById('client-modal').classList.add('open');
   }
 
+  function openLeadModal(id) {
+    activeLead = leads.find(l => l.id === id);
+    if (!activeLead) return;
+    document.getElementById('lead-modal-name').textContent = activeLead.name || activeLead.email || 'Lead';
+    document.getElementById('lead-modal-body').innerHTML = `
+      <div style="padding:20px 28px;display:flex;flex-direction:column;gap:10px;">
+        ${leadRow('Email', activeLead.email||'—')}
+        ${leadRow('Business', activeLead.business||'—')}
+        ${leadRow('Industry', activeLead.industry||'—')}
+        ${leadRow('Agents Interested', activeLead.agents||'—')}
+        ${leadRow('Tone Preference', activeLead.tone||'—')}
+        ${leadRow('Source', activeLead.type||'waitlist')}
+        ${leadRow('Date', activeLead.date ? new Date(activeLead.date).toLocaleString() : '—')}
+        ${leadRow('Status', activeLead.status||'new')}
+      </div>`;
+    document.getElementById('lead-modal').classList.add('open');
+  }
+
+  function leadRow(label, val) {
+    return `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);width:140px;flex-shrink:0;">${label}</div>
+      <div style="font-size:13px;color:var(--white);text-align:right;">${val}</div>
+    </div>`;
+  }
+
+  function convertLead() {
+    if (!activeLead) return;
+    closeModal('lead-modal');
+    // Pre-fill new client modal with lead data
+    document.getElementById('nc-name').value = activeLead.business || activeLead.name || '';
+    document.getElementById('nc-industry').value = activeLead.industry || '';
+    document.getElementById('nc-email').value = activeLead.email || '';
+    openNewClient();
+    // Mark lead as converted
+    activeLead.status = 'converted';
+    saveData();
+    updateAll();
+  }
+
+  function markContacted(id) {
+    const lead = leads.find(l => l.id === id);
+    if (lead) { lead.status = 'contacted'; saveData(); updateAll(); }
+  }
+
+  function clearLeads() {
+    if (confirm('Clear all leads? This cannot be undone.')) { leads = []; saveData(); updateAll(); }
+  }
+
   function openNewClient() { document.getElementById('nc-modal').classList.add('open'); }
+
   function closeModal(id) {
     document.getElementById(id).classList.remove('open');
-    document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('mtab-overview').classList.add('active');
-    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.modal-tab')[0].classList.add('active');
+    document.querySelectorAll('#' + id + ' .modal-tab-panel').forEach(p => p.classList.remove('active'));
+    const first = document.querySelector('#' + id + ' .modal-tab-panel');
+    if (first) first.classList.add('active');
+    document.querySelectorAll('#' + id + ' .modal-tab').forEach(t => t.classList.remove('active'));
+    const firstTab = document.querySelector('#' + id + ' .modal-tab');
+    if (firstTab) firstTab.classList.add('active');
   }
 
   function showModalTab(id, el) {
@@ -971,23 +831,25 @@
   function addClient() {
     const name = document.getElementById('nc-name').value.trim() || 'New Client';
     const industry = document.getElementById('nc-industry').value.trim() || 'Business';
+    const email = document.getElementById('nc-email').value.trim() || '';
     const plan = document.getElementById('nc-plan').value;
     const agents = document.getElementById('nc-agents').value;
-    const mrrMap = { Starter: 499, Growth: 999, Enterprise: 2400 };
+    const mrrMap = { Starter:499, Growth:999, Enterprise:2400 };
     clients.push({
-      id: Date.now(), name, industry, plan,
+      id: Date.now(), name, industry, email, plan,
       mrr: mrrMap[plan], conversations: 0, sat: 90,
-      agents, since: 'Apr 2025',
-      logs: ['Client just onboarded — agent configuring']
+      agents, since: new Date().toLocaleDateString('en-GB', {month:'short', year:'numeric'}),
+      logs: ['Client onboarded — agent configuring']
     });
+    saveData();
     closeModal('nc-modal');
     document.getElementById('nc-name').value = '';
     document.getElementById('nc-industry').value = '';
+    document.getElementById('nc-email').value = '';
     updateAll();
   }
 
-  // Init
-  updateAll();
+  // Don't auto-run updateAll — wait for password
 </script>
 </body>
 </html>
